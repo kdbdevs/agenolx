@@ -3,7 +3,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { z } from "zod";
 import { pool } from "@/lib/db";
 import { createSessionToken, setAuthCookie } from "@/lib/auth";
-import { findPaymentProvider } from "@/lib/payment-providers";
+import { paymentMethodToProviderType } from "@/lib/payment-providers";
 import { redirectRelative, withSearchParam } from "@/lib/redirect";
 
 const registerSchema = z
@@ -62,14 +62,23 @@ async function insertUser(input: z.infer<typeof registerSchema>) {
   const passwordHash = await bcrypt.hash(input.password, 12);
   const connection = await pool.getConnection();
   const providerCode = input.paymentMethod === "bank" ? input.bankCode : input.eMoneyCode;
-  const provider = providerCode ? findPaymentProvider(input.paymentMethod, providerCode) : undefined;
+  const providerType = paymentMethodToProviderType(input.paymentMethod);
 
-  if (!provider) {
+  if (!providerCode) {
     throw new Error("INVALID_PAYMENT_PROVIDER");
   }
 
   try {
     await connection.beginTransaction();
+
+    const [providerRows] = await connection.execute(
+      "select id from banks where code = ? and type = ? and is_active = true limit 1",
+      [providerCode, providerType]
+    );
+    const bankId = Number((providerRows as Array<{ id: number }>)[0]?.id);
+    if (!bankId) {
+      throw new Error("INVALID_PAYMENT_PROVIDER");
+    }
 
     let userId = 0;
     for (let attempt = 0; attempt < 5; attempt += 1) {
@@ -97,18 +106,6 @@ async function insertUser(input: z.infer<typeof registerSchema>) {
 
     if (!userId) {
       throw new Error("Gagal membuat user");
-    }
-
-    await connection.execute(
-      `insert into banks (code, name, type, is_active)
-       values (?, ?, ?, true)
-       on duplicate key update name = values(name), type = values(type), is_active = true`,
-      [provider.code, provider.name, provider.method === "e-money" ? "e_money" : "bank"]
-    );
-    const [providerRows] = await connection.execute("select id from banks where code = ? limit 1", [provider.code]);
-    const bankId = Number((providerRows as Array<{ id: number }>)[0]?.id);
-    if (!bankId) {
-      throw new Error("Gagal menyimpan metode pembayaran");
     }
 
     await connection.execute(

@@ -1,4 +1,7 @@
+import { pool } from "./db";
+
 export type PaymentMethod = "bank" | "e-money";
+export type PaymentProviderType = "bank" | "e_money";
 
 export type PaymentProvider = {
   code: string;
@@ -44,4 +47,34 @@ export const PAYMENT_PROVIDERS = [...BANK_PROVIDERS, ...E_MONEY_PROVIDERS] as co
 
 export function findPaymentProvider(method: PaymentMethod, code: string) {
   return PAYMENT_PROVIDERS.find((provider) => provider.method === method && provider.code === code);
+}
+
+export function paymentMethodToProviderType(method: PaymentMethod): PaymentProviderType {
+  return method === "e-money" ? "e_money" : "bank";
+}
+
+export function providerTypeToPaymentMethod(type: PaymentProviderType): PaymentMethod {
+  return type === "e_money" ? "e-money" : "bank";
+}
+
+export function splitPaymentProviders(providers: readonly PaymentProvider[]) {
+  return {
+    bankProviders: providers.filter((provider) => provider.method === "bank"),
+    eMoneyProviders: providers.filter((provider) => provider.method === "e-money")
+  };
+}
+
+export async function getActivePaymentProviders() {
+  const [rows] = await pool.query(
+    `select code, name, type
+     from banks
+     where is_active = true and type in ('bank', 'e_money')
+     order by id`
+  );
+
+  return (rows as Array<{ code: string; name: string; type: PaymentProviderType }>).map((row) => ({
+    code: row.code,
+    name: row.name,
+    method: providerTypeToPaymentMethod(row.type)
+  }));
 }

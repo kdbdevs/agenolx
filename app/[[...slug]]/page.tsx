@@ -9,6 +9,7 @@ import { DesktopSlotSnapshot, MobileSlotSnapshot, type SlotCategory } from "@/co
 import { DesktopSportsSnapshot, MobileSportsSnapshot } from "@/components/sports-snapshot";
 import { DesktopStaticPageSnapshot, MobileStaticPageSnapshot, type StaticSnapshotKey } from "@/components/static-page-snapshot";
 import { getPageBySlug, getRouteKind } from "@/lib/content";
+import { getActivePaymentProviders } from "@/lib/payment-providers";
 import { getCurrentUser } from "@/lib/session";
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
@@ -157,13 +158,15 @@ export default async function PublicRoute({ params, searchParams }: PageProps) {
   const staticPageKey = staticPageRoutes[path];
 
   if (staticPageKey) {
+    const paymentProviders = staticPageKey === "register" ? await getActivePaymentProviders() : undefined;
+
     return (
       <>
         <div className="static-page-mobile-render">
-          <MobileStaticPageSnapshot pageKey={staticPageKey} user={user} />
+          <MobileStaticPageSnapshot pageKey={staticPageKey} user={user} paymentProviders={paymentProviders} />
         </div>
         <div className="static-page-desktop-render">
-          <DesktopStaticPageSnapshot pageKey={staticPageKey} user={user} />
+          <DesktopStaticPageSnapshot pageKey={staticPageKey} user={user} paymentProviders={paymentProviders} />
         </div>
       </>
     );

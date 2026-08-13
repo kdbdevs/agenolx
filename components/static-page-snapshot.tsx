@@ -14,7 +14,7 @@ import {
   MobileSnapshotFooter
 } from "./mobile-home-snapshot";
 import { AuthenticatedMobileHeader, AuthenticatedMobileStickyFooter, type AuthSnapshotProps } from "@/components/authenticated-chrome";
-import { BANK_PROVIDERS, E_MONEY_PROVIDERS } from "@/lib/payment-providers";
+import { splitPaymentProviders, type PaymentProvider } from "@/lib/payment-providers";
 
 export type StaticSnapshotKey =
   | "lotto"
@@ -185,9 +185,11 @@ const sourceHtml: Record<StaticSource, string> = {
   "register-mobile.html": readFileSync(join(projectRoot, "html", "statis", "register-mobile.html"), "utf8")
 };
 
-export function DesktopStaticPageSnapshot({ pageKey, user }: { pageKey: StaticSnapshotKey } & AuthSnapshotProps) {
+type StaticPageSnapshotProps = { pageKey: StaticSnapshotKey; paymentProviders?: readonly PaymentProvider[] } & AuthSnapshotProps;
+
+export function DesktopStaticPageSnapshot({ pageKey, user, paymentProviders }: StaticPageSnapshotProps) {
   const config = snapshotConfigs[pageKey];
-  const mainHtml = readSourceSection(config.desktopSource, config.mainClass, false, config.activeHref);
+  const mainHtml = readSourceSection(config.desktopSource, config.mainClass, false, config.activeHref, paymentProviders);
   const footerHtml = readFooterText(config.desktopSource, false, config.activeHref);
 
   return (
@@ -213,10 +215,10 @@ export function DesktopStaticPageSnapshot({ pageKey, user }: { pageKey: StaticSn
   );
 }
 
-export function MobileStaticPageSnapshot({ pageKey, user }: { pageKey: StaticSnapshotKey } & AuthSnapshotProps) {
+export function MobileStaticPageSnapshot({ pageKey, user, paymentProviders }: StaticPageSnapshotProps) {
   const config = snapshotConfigs[pageKey];
   const source = config.mobileSource ?? config.desktopSource;
-  const mainHtml = readSourceSection(source, config.mainClass, Boolean(config.forceMobileFromDesktop), config.activeHref);
+  const mainHtml = readSourceSection(source, config.mainClass, Boolean(config.forceMobileFromDesktop), config.activeHref, paymentProviders);
   const footerHtml = readFooterText(source, Boolean(config.forceMobileFromDesktop), config.activeHref);
 
   return (
@@ -388,11 +390,17 @@ function page(
   return { activeLabel, desktopSource, mobileSource, mainClass, mobileAssetRoot };
 }
 
-function readSourceSection(source: StaticSource, classToken: string, forceMobile = false, activeHref?: string) {
+function readSourceSection(
+  source: StaticSource,
+  classToken: string,
+  forceMobile = false,
+  activeHref?: string,
+  paymentProviders: readonly PaymentProvider[] = []
+) {
   const html = sourceHtml[source];
   const match = findSectionByClass(html, classToken);
   if (!match) throw new Error(`Main section ${classToken} not found in ${source}`);
-  return sanitizeStaticHtml(match, forceMobile, activeHref);
+  return sanitizeStaticHtml(match, forceMobile, activeHref, paymentProviders);
 }
 
 function readFooterText(source: StaticSource, forceMobile = false, activeHref?: string) {
@@ -411,7 +419,12 @@ function findSectionByClass(html: string, classToken: string) {
   return undefined;
 }
 
-function sanitizeStaticHtml(html: string, forceMobile: boolean, activeHref?: string) {
+function sanitizeStaticHtml(
+  html: string,
+  forceMobile: boolean,
+  activeHref?: string,
+  paymentProviders: readonly PaymentProvider[] = []
+) {
   let output = html
     .replace(/https:\/\/agenolx\.com/g, "")
     .replace(/https:\/\/agenolxtoro\.com/g, "")
@@ -428,13 +441,13 @@ function sanitizeStaticHtml(html: string, forceMobile: boolean, activeHref?: str
   }
 
   if (output.includes("register-form-1")) {
-    output = wireRegisterSnapshotForm(output);
+    output = wireRegisterSnapshotForm(output, paymentProviders);
   }
 
   return output;
 }
 
-function wireRegisterSnapshotForm(html: string) {
+function wireRegisterSnapshotForm(html: string, paymentProviders: readonly PaymentProvider[]) {
   const formMatch = html.match(/<form\b[^>]*class="[^"]*\bregister-form-1\b[^"]*"[\s\S]*?<\/form>/);
   if (!formMatch) return html;
 
@@ -465,7 +478,7 @@ function wireRegisterSnapshotForm(html: string) {
   wiredForm = renameRegisterInput(wiredForm, /(<div\b[^>]*class="[^"]*\binput-fullname\b[^"]*"[\s\S]*?<input\b)([^>]*)(>)/, "fullName");
   wiredForm = renameRegisterInput(wiredForm, /(<label>E-mail<\/label>[\s\S]*?<input\b)([^>]*)(>)/, "email");
   wiredForm = renameRegisterInput(wiredForm, /(<div\b[^>]*class="[^"]*\binput-phone\b[^"]*"[\s\S]*?<input\b)([^>]*)(>)/, "phone");
-  wiredForm = injectRegisterPaymentDetails(wiredForm);
+  wiredForm = injectRegisterPaymentDetails(wiredForm, paymentProviders);
   wiredForm = removeRegisterCaptcha(wiredForm);
   wiredForm += registerPaymentControllerScript();
 
@@ -488,19 +501,21 @@ function removeRegisterCaptcha(html: string) {
     .replace(/\s*<div\b(?=[^>]*class="[^"]*\bcaptcha__image\b)[\s\S]*?<\/div>\s*/g, "");
 }
 
-function injectRegisterPaymentDetails(html: string) {
+function injectRegisterPaymentDetails(html: string, paymentProviders: readonly PaymentProvider[]) {
   const marker = /(<select\b[^>]*name="paymentMethod"[\s\S]*?<\/select>[\s\S]*?<\/div>\s*<!---->\s*<\/div>)(?:\s*<!---->){2,4}/;
-  return html.replace(marker, `$1${registerPaymentDetailsHtml()}`);
+  return html.replace(marker, `$1${registerPaymentDetailsHtml(paymentProviders)}`);
 }
 
-function registerPaymentDetailsHtml() {
+function registerPaymentDetailsHtml(paymentProviders: readonly PaymentProvider[]) {
+  const { bankProviders, eMoneyProviders } = splitPaymentProviders(paymentProviders);
+
   return `
     <div class="select__container input__container register-payment-provider" data-payment-provider="bank" hidden>
       <label>Bank</label>
       <div class="input__root">
         <select name="bankCode" required class="input input__select" disabled>
           <option disabled="disabled" value="">Pilih Bank</option>
-          ${BANK_PROVIDERS.map((provider) => `<option value="${provider.code}">${provider.name}</option>`).join("")}
+          ${bankProviders.map((provider) => `<option value="${provider.code}">${provider.name}</option>`).join("")}
         </select>
         <i class="input__icon icon-bank icon--xs"></i>
         <i class="select__arrow icon-arrow-down icon--xs"></i>
@@ -511,7 +526,7 @@ function registerPaymentDetailsHtml() {
       <div class="input__root">
         <select name="eMoneyCode" required class="input input__select" disabled>
           <option disabled="disabled" value="">Pilih Akun</option>
-          ${E_MONEY_PROVIDERS.map((provider) => `<option value="${provider.code}">${provider.name}</option>`).join("")}
+          ${eMoneyProviders.map((provider) => `<option value="${provider.code}">${provider.name}</option>`).join("")}
         </select>
         <i class="input__icon icon-bank icon--xs"></i>
         <i class="select__arrow icon-arrow-down icon--xs"></i>
