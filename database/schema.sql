@@ -18,12 +18,16 @@ create table if not exists banks (
   id bigint unsigned not null auto_increment primary key,
   code varchar(32) not null,
   name varchar(120) not null,
+  type enum('bank', 'e_money') not null default 'bank',
   logo_url varchar(500) null,
   is_active boolean not null default true,
   created_at timestamp not null default current_timestamp,
   updated_at timestamp not null default current_timestamp on update current_timestamp,
   unique key banks_code_unique (code)
 );
+
+alter table banks
+  add column type enum('bank', 'e_money') not null default 'bank' after name;
 
 create table if not exists user_bank_accounts (
   id bigint unsigned not null auto_increment primary key,

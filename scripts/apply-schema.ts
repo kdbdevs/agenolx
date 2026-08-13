@@ -13,7 +13,13 @@ async function main() {
   const connection = await pool.getConnection();
   try {
     for (const statement of statements) {
-      await connection.query(statement);
+      try {
+        await connection.query(statement);
+      } catch (error) {
+        if ((error as { code?: string }).code !== "ER_DUP_FIELDNAME") {
+          throw error;
+        }
+      }
     }
     console.log(`Applied ${statements.length} schema statements.`);
   } finally {

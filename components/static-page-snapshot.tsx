@@ -14,6 +14,7 @@ import {
   MobileSnapshotFooter
 } from "./mobile-home-snapshot";
 import { AuthenticatedMobileHeader, AuthenticatedMobileStickyFooter, type AuthSnapshotProps } from "@/components/authenticated-chrome";
+import { BANK_PROVIDERS, E_MONEY_PROVIDERS } from "@/lib/payment-providers";
 
 export type StaticSnapshotKey =
   | "lotto"
@@ -454,17 +455,19 @@ function wireRegisterSnapshotForm(html: string) {
     })
     .replace(/<select\b([^>]*)>/g, (tag, attributes: string) => {
       if (/\sname=/.test(attributes)) return tag;
-      return `<select name="paymentMethod"${attributes}>`;
+      return `<select name="paymentMethod" required onchange="this.form.dataset.paymentMethod=this.value;var bank=this.value==='bank';var money=this.value==='e-money';var b=this.form.querySelector('[data-payment-provider=bank]');var m=this.form.querySelector('[data-payment-provider=e-money]');var bs=this.form.querySelector('[name=bankCode]');var ms=this.form.querySelector('[name=eMoneyCode]');if(b)b.hidden=!bank;if(m)m.hidden=!money;if(bs)bs.disabled=!bank;if(ms)ms.disabled=!money"${attributes}>`;
     });
 
   wiredForm = renameRegisterInput(wiredForm, /(<div\b[^>]*class="[^"]*\binput-username\b[^"]*"[\s\S]*?<input\b)([^>]*)(>)/, "username");
   wiredForm = renameRegisterInput(wiredForm, /(<label>Password<\/label>[\s\S]*?<input\b)([^>]*)(>)/, "password");
   wiredForm = renameRegisterInput(wiredForm, /(<label>Masukkan kembali Password<\/label>[\s\S]*?<input\b)([^>]*)(>)/, "passwordConfirm");
   wiredForm = renameRegisterInput(wiredForm, /(<label>Kode Referral<\/label>[\s\S]*?<input\b)([^>]*)(>)/, "referralCode");
-  wiredForm = renameRegisterInput(wiredForm, /(<div\b[^>]*class="[^"]*\bcaptcha__input\b[^"]*"[\s\S]*?<input\b)([^>]*)(>)/, "captcha");
   wiredForm = renameRegisterInput(wiredForm, /(<div\b[^>]*class="[^"]*\binput-fullname\b[^"]*"[\s\S]*?<input\b)([^>]*)(>)/, "fullName");
   wiredForm = renameRegisterInput(wiredForm, /(<label>E-mail<\/label>[\s\S]*?<input\b)([^>]*)(>)/, "email");
   wiredForm = renameRegisterInput(wiredForm, /(<div\b[^>]*class="[^"]*\binput-phone\b[^"]*"[\s\S]*?<input\b)([^>]*)(>)/, "phone");
+  wiredForm = injectRegisterPaymentDetails(wiredForm);
+  wiredForm = removeRegisterCaptcha(wiredForm);
+  wiredForm += registerPaymentControllerScript();
 
   return html.replace(formMatch[0], wiredForm);
 }
@@ -474,6 +477,90 @@ function renameRegisterInput(html: string, pattern: RegExp, name: string) {
     const nextAttributes = attributes.replace(/\sname="[^"]*"/, "");
     return `${prefix} name="${name}"${nextAttributes}${suffix}`;
   });
+}
+
+function removeRegisterCaptcha(html: string) {
+  return html.replace(
+    /\s*<div\b(?=[^>]*(?:class="[^"]*\bcaptcha\b|data-fetch-key="data-v-431db275:0"))[^>]*[\s\S]*?(?:<!---->\s*)*(?=<button\b)/,
+    ""
+  )
+    .replace(/\s*<button\b(?=[^>]*type="button")(?=[^>]*data-v-431db275)[\s\S]*?<\/button>\s*/g, "")
+    .replace(/\s*<div\b(?=[^>]*class="[^"]*\bcaptcha__image\b)[\s\S]*?<\/div>\s*/g, "");
+}
+
+function injectRegisterPaymentDetails(html: string) {
+  const marker = /(<select\b[^>]*name="paymentMethod"[\s\S]*?<\/select>[\s\S]*?<\/div>\s*<!---->\s*<\/div>)(?:\s*<!---->){2,4}/;
+  return html.replace(marker, `$1${registerPaymentDetailsHtml()}`);
+}
+
+function registerPaymentDetailsHtml() {
+  return `
+    <div class="select__container input__container register-payment-provider" data-payment-provider="bank" hidden>
+      <label>Bank</label>
+      <div class="input__root">
+        <select name="bankCode" required class="input input__select" disabled>
+          <option disabled="disabled" value="">Pilih Bank</option>
+          ${BANK_PROVIDERS.map((provider) => `<option value="${provider.code}">${provider.name}</option>`).join("")}
+        </select>
+        <i class="input__icon icon-bank icon--xs"></i>
+        <i class="select__arrow icon-arrow-down icon--xs"></i>
+      </div>
+    </div>
+    <div class="select__container input__container register-payment-provider" data-payment-provider="e-money" hidden>
+      <label>E-money</label>
+      <div class="input__root">
+        <select name="eMoneyCode" required class="input input__select" disabled>
+          <option disabled="disabled" value="">Pilih Akun</option>
+          ${E_MONEY_PROVIDERS.map((provider) => `<option value="${provider.code}">${provider.name}</option>`).join("")}
+        </select>
+        <i class="input__icon icon-bank icon--xs"></i>
+        <i class="select__arrow icon-arrow-down icon--xs"></i>
+      </div>
+    </div>
+    <div class="input__container">
+      <label>Nama Rekening</label>
+      <div class="input__root">
+        <input type="text" name="accountName" autocomplete="off" required class="input">
+        <i class="input__icon icon-bank icon--xs"></i>
+      </div>
+    </div>
+    <div class="alert alert--info">
+      <i class="icon-info icon--lg"></i>
+      <p>Nama rekening harus sama/sesuai dengan yang terdaftar pada rekening tersebut.</p>
+    </div>
+    <div class="input__container">
+      <label>Nomor Rekening</label>
+      <div class="input__root">
+        <input type="text" name="accountNumber" autocomplete="off" required class="input">
+        <i class="input__icon icon-bank icon--xs"></i>
+      </div>
+    </div>`;
+}
+
+function registerPaymentControllerScript() {
+  return `<script>
+    (() => {
+      const form = document.currentScript?.previousElementSibling?.matches?.("form")
+        ? document.currentScript.previousElementSibling
+        : document.currentScript?.parentElement?.querySelector?.("form.register-form-1");
+      if (!form) return;
+      const method = form.querySelector('select[name="paymentMethod"]');
+      const bank = form.querySelector('[data-payment-provider="bank"]');
+      const eMoney = form.querySelector('[data-payment-provider="e-money"]');
+      const bankSelect = form.querySelector('select[name="bankCode"]');
+      const eMoneySelect = form.querySelector('select[name="eMoneyCode"]');
+      const syncPaymentMethod = () => {
+        const isBank = method?.value === "bank";
+        const isEMoney = method?.value === "e-money";
+        if (bank) bank.hidden = !isBank;
+        if (eMoney) eMoney.hidden = !isEMoney;
+        if (bankSelect) bankSelect.disabled = !isBank;
+        if (eMoneySelect) eMoneySelect.disabled = !isEMoney;
+      };
+      method?.addEventListener("change", syncPaymentMethod);
+      syncPaymentMethod();
+    })();
+  </script>`;
 }
 
 function activateStaticHref(html: string, activeHref: string) {

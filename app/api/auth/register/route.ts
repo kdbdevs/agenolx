@@ -3,6 +3,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { z } from "zod";
 import { pool } from "@/lib/db";
 import { createSessionToken, setAuthCookie } from "@/lib/auth";
+import { findPaymentProvider } from "@/lib/payment-providers";
 import { redirectRelative, withSearchParam } from "@/lib/redirect";
 
 const registerSchema = z
@@ -21,11 +22,25 @@ const registerSchema = z
     passwordConfirm: z.string(),
     email: z.string().trim().email("Email tidak valid").optional().or(z.literal("")),
     phone: z.string().trim().max(32).optional().or(z.literal("")),
+    paymentMethod: z.enum(["bank", "e-money"], { message: "Metode pembayaran wajib dipilih" }),
+    bankCode: z.string().trim().optional().or(z.literal("")),
+    eMoneyCode: z.string().trim().optional().or(z.literal("")),
+    accountName: z.string().trim().min(2, "Nama rekening wajib diisi").max(160, "Nama rekening terlalu panjang"),
+    accountNumber: z
+      .string()
+      .trim()
+      .min(5, "Nomor rekening wajib diisi")
+      .max(80, "Nomor rekening terlalu panjang")
+      .regex(/^[0-9+\-\s.]+$/, "Nomor rekening hanya boleh angka dan simbol umum"),
     referralCode: z.string().trim().max(32).optional().or(z.literal(""))
   })
   .refine((data) => data.password === data.passwordConfirm, {
     message: "Konfirmasi password tidak sama",
     path: ["passwordConfirm"]
+  })
+  .refine((data) => Boolean(data.paymentMethod === "bank" ? data.bankCode : data.eMoneyCode), {
+    message: "Bank atau e-money wajib dipilih",
+    path: ["paymentMethod"]
   });
 
 function field(formData: FormData, name: string) {
@@ -46,6 +61,12 @@ function makeReferralCode(username: string) {
 async function insertUser(input: z.infer<typeof registerSchema>) {
   const passwordHash = await bcrypt.hash(input.password, 12);
   const connection = await pool.getConnection();
+  const providerCode = input.paymentMethod === "bank" ? input.bankCode : input.eMoneyCode;
+  const provider = providerCode ? findPaymentProvider(input.paymentMethod, providerCode) : undefined;
+
+  if (!provider) {
+    throw new Error("INVALID_PAYMENT_PROVIDER");
+  }
 
   try {
     await connection.beginTransaction();
@@ -78,6 +99,23 @@ async function insertUser(input: z.infer<typeof registerSchema>) {
       throw new Error("Gagal membuat user");
     }
 
+    await connection.execute(
+      `insert into banks (code, name, type, is_active)
+       values (?, ?, ?, true)
+       on duplicate key update name = values(name), type = values(type), is_active = true`,
+      [provider.code, provider.name, provider.method === "e-money" ? "e_money" : "bank"]
+    );
+    const [providerRows] = await connection.execute("select id from banks where code = ? limit 1", [provider.code]);
+    const bankId = Number((providerRows as Array<{ id: number }>)[0]?.id);
+    if (!bankId) {
+      throw new Error("Gagal menyimpan metode pembayaran");
+    }
+
+    await connection.execute(
+      `insert into user_bank_accounts (user_id, bank_id, account_name, account_number, status)
+       values (?, ?, ?, ?, 'pending')`,
+      [userId, bankId, input.accountName, input.accountNumber]
+    );
     await connection.execute("insert into wallets (user_id, currency) values (?, 'IDR')", [userId]);
     await connection.commit();
     return userId;
@@ -97,6 +135,11 @@ export async function POST(request: NextRequest) {
     passwordConfirm: field(formData, "passwordConfirm"),
     email: field(formData, "email"),
     phone: field(formData, "phone"),
+    paymentMethod: field(formData, "paymentMethod"),
+    bankCode: field(formData, "bankCode"),
+    eMoneyCode: field(formData, "eMoneyCode"),
+    accountName: field(formData, "accountName"),
+    accountNumber: field(formData, "accountNumber"),
     referralCode: field(formData, "referralCode")
   });
 
@@ -114,6 +157,9 @@ export async function POST(request: NextRequest) {
     const code = (error as { code?: string }).code;
     if (code === "ER_DUP_ENTRY") {
       return redirectWithError(request, "Username atau email sudah terdaftar");
+    }
+    if ((error as Error).message === "INVALID_PAYMENT_PROVIDER") {
+      return redirectWithError(request, "Bank atau e-money tidak valid");
     }
     console.error(error);
     return redirectWithError(request, "Register gagal diproses");

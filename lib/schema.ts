@@ -41,6 +41,7 @@ export const banks = mysqlTable("banks", {
   id: bigint("id", { mode: "number", unsigned: true }).autoincrement().primaryKey(),
   code: varchar("code", { length: 32 }).notNull(),
   name: varchar("name", { length: 120 }).notNull(),
+  type: mysqlEnum("type", ["bank", "e_money"]).default("bank").notNull(),
   logoUrl: varchar("logo_url", { length: 500 }),
   isActive: boolean("is_active").default(true).notNull(),
   ...timestamps
