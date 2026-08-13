@@ -6120,3 +6120,36 @@ i[data-v-36ca62b1]{margin-right:.5rem}
     white-space: nowrap;
   }
 }
+
+@media (min-width: 1024px) {
+  .snapshot-desktop-layout .register-form-1__fields {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    column-gap: 3rem;
+    align-items: start;
+  }
+
+  .snapshot-desktop-layout .register-form-1__fields > .fields__group,
+  .snapshot-desktop-layout .register-form-1__fields > div {
+    min-width: 0;
+  }
+
+  .snapshot-desktop-layout .register-form-1__fields .fields__group {
+    display: block;
+    width: 100%;
+    min-width: 0;
+  }
+
+  .snapshot-desktop-layout .register-form-1__fields .input__container,
+  .snapshot-desktop-layout .register-form-1__fields .select__container,
+  .snapshot-desktop-layout .register-form-1__fields .input__root,
+  .snapshot-desktop-layout .register-form-1__fields .input {
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .snapshot-desktop-layout .register-form-1__fields .alert {
+    grid-column: 1 / -1;
+    width: 100%;
+  }
+}

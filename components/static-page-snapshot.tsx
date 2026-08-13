@@ -493,12 +493,33 @@ function renameRegisterInput(html: string, pattern: RegExp, name: string) {
 }
 
 function removeRegisterCaptcha(html: string) {
-  return html.replace(
-    /\s*<div\b(?=[^>]*(?:class="[^"]*\bcaptcha\b|data-fetch-key="data-v-431db275:0"))[^>]*[\s\S]*?(?:<!---->\s*)*(?=<button\b)/,
-    ""
+  return removeBalancedDiv(
+    html,
+    /<div\b(?=[^>]*(?:class="[^"]*\bcaptcha\b|data-fetch-key="data-v-431db275:0"))[^>]*>/
   )
     .replace(/\s*<button\b(?=[^>]*type="button")(?=[^>]*data-v-431db275)[\s\S]*?<\/button>\s*/g, "")
     .replace(/\s*<div\b(?=[^>]*class="[^"]*\bcaptcha__image\b)[\s\S]*?<\/div>\s*/g, "");
+}
+
+function removeBalancedDiv(html: string, openTagPattern: RegExp) {
+  const openMatch = html.match(openTagPattern);
+  if (!openMatch || openMatch.index === undefined) return html;
+
+  let depth = 0;
+  const tagPattern = /<\/?div\b[^>]*>/g;
+  tagPattern.lastIndex = openMatch.index;
+
+  for (const tagMatch of html.matchAll(tagPattern)) {
+    const tag = tagMatch[0];
+    depth += tag.startsWith("</") ? -1 : 1;
+
+    if (depth === 0) {
+      const end = tagMatch.index + tag.length;
+      return `${html.slice(0, openMatch.index)}${html.slice(end)}`;
+    }
+  }
+
+  return html;
 }
 
 function injectRegisterPaymentDetails(html: string, paymentProviders: readonly PaymentProvider[]) {
