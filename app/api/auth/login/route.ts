@@ -3,6 +3,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { z } from "zod";
 import { createSessionToken, setAuthCookie } from "@/lib/auth";
 import { pool } from "@/lib/db";
+import { redirectRelative, withSearchParam } from "@/lib/redirect";
 
 const loginSchema = z.object({
   username: z.string().trim().min(1, "Username wajib diisi"),
@@ -23,9 +24,8 @@ function field(formData: FormData, name: string) {
 }
 
 function redirectWithError(request: NextRequest, message: string) {
-  const url = new URL("/login", request.url);
-  url.searchParams.set("error", message);
-  return NextResponse.redirect(url, { status: 303 });
+  void request;
+  return redirectRelative(withSearchParam("/login", "error", message));
 }
 
 export async function POST(request: NextRequest) {
@@ -54,7 +54,7 @@ export async function POST(request: NextRequest) {
     return redirectWithError(request, "Akun tidak aktif");
   }
 
-  const response = NextResponse.redirect(new URL("/", request.url), { status: 303 });
+  const response = redirectRelative("/");
   const token = await createSessionToken({ userId: user.id, username: user.username }, parsed.data.remember);
   setAuthCookie(response, token, parsed.data.remember);
   return response;

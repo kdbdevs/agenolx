@@ -1,5 +1,6 @@
-import { NextResponse, type NextRequest } from "next/server";
+import { NextResponse } from "next/server";
 import { AUTH_COOKIE_NAME } from "@/lib/auth";
+import { redirectRelative } from "@/lib/redirect";
 
 const AUTH_COOKIE_NAMES = [AUTH_COOKIE_NAME, "session", "auth_token", "token"];
 
@@ -14,16 +15,16 @@ function clearAuthCookies(response: NextResponse) {
   }
 }
 
-function logout(request: NextRequest) {
-  const response = NextResponse.redirect(new URL("/", request.url), { status: 303 });
+function logout() {
+  const response = redirectRelative("/");
   clearAuthCookies(response);
   return response;
 }
 
-export function GET(request: NextRequest) {
-  return logout(request);
+export function GET() {
+  return logout();
 }
 
-export function POST(request: NextRequest) {
-  return logout(request);
+export function POST() {
+  return logout();
 }

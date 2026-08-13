@@ -2,6 +2,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { z } from "zod";
 import { AUTH_COOKIE_NAME, verifySessionToken } from "@/lib/auth";
 import { pool } from "@/lib/db";
+import { redirectRelative, withSearchParam } from "@/lib/redirect";
 
 const depositSchema = z.object({
   method: z.enum(["bank_transfer", "qris"]),
@@ -16,9 +17,8 @@ function field(formData: FormData, name: string) {
 }
 
 function redirectWithStatus(request: NextRequest, path: string, key: "success" | "error", message: string) {
-  const url = new URL(path, request.url);
-  url.searchParams.set(key, message);
-  return NextResponse.redirect(url, { status: 303 });
+  void request;
+  return redirectRelative(withSearchParam(path, key, message));
 }
 
 export async function POST(request: NextRequest) {

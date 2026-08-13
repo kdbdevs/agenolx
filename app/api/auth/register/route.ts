@@ -3,6 +3,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { z } from "zod";
 import { pool } from "@/lib/db";
 import { createSessionToken, setAuthCookie } from "@/lib/auth";
+import { redirectRelative, withSearchParam } from "@/lib/redirect";
 
 const registerSchema = z
   .object({
@@ -33,9 +34,8 @@ function field(formData: FormData, name: string) {
 }
 
 function redirectWithError(request: NextRequest, message: string) {
-  const url = new URL("/register", request.url);
-  url.searchParams.set("error", message);
-  return NextResponse.redirect(url, { status: 303 });
+  void request;
+  return redirectRelative(withSearchParam("/register", "error", message));
 }
 
 function makeReferralCode(username: string) {
@@ -106,7 +106,7 @@ export async function POST(request: NextRequest) {
 
   try {
     const userId = await insertUser(parsed.data);
-    const response = NextResponse.redirect(new URL("/", request.url), { status: 303 });
+    const response = redirectRelative("/");
     const token = await createSessionToken({ userId, username: parsed.data.username }, true);
     setAuthCookie(response, token, true);
     return response;
