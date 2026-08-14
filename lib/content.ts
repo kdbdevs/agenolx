@@ -36,9 +36,9 @@ export type PageData = {
 };
 
 export const brand = {
-  name: "AGENOLX",
-  logo: "https://cdn-proxy.globalcontentcloud.com/456/logo/logo.png",
-  favicon: "https://cdn-proxy.globalcontentcloud.com/456/logo/favicon.ico",
+  name: "PEMULABET",
+  logo: "/logo-pemula-bet.webp",
+  favicon: "/fav-pemula-bet.webp",
   homeHero: "https://cdn.globalcontentcloud.com/promotions/promotion_banner_588_.webp"
 };
 
@@ -327,42 +327,9 @@ export const quickLinks = [
   { label: "Fishing", href: "/fishing" }
 ];
 
-export const floatingLinks = [
-  {
-    label: "RTP SLOT",
-    sublabel: "Cek RTP Slot Hari Ini",
-    href: "https://surkale.me/AgenolxRtp/",
-    image: "https://photoku.io/images/2025/08/29/GIF-RTP-SLOT-ezgif.com-speed.gif"
-  },
-  {
-    label: "Prediksi Bola",
-    sublabel: "Cek Prediksi Terpercaya Hari Ini",
-    href: "https://yakale.me/AgenBolaMania",
-    image: "https://photoku.io/images/2025/08/29/prediksi-bola-ezgif.com-speed.gif"
-  },
-  {
-    label: "Bukti Jackpot",
-    sublabel: "Cek Bukti Jackpot Hari Ini",
-    href: "https://surkale.me/AgenolxBukti/",
-    image: "https://photoku.io/images/2025/08/29/buktijepe-ezgif.com-speed.gif"
-  },
-  {
-    label: "Telegram Agenolx",
-    sublabel: "Telegram Agenolx Hari Ini",
-    href: "https://hokikale.me/AGENOLXTELE",
-    image: "https://photoku.io/images/2025/08/29/telegram-ezgif.com-speed.gif"
-  },
-  {
-    label: "Whatsapp Agenolx",
-    sublabel: "Whatsapp Agenolx Hari Ini",
-    href: "https://hokikale.me/WAAGENOLX",
-    image: "https://photoku.io/images/2025/08/29/icon-wa-ezgif.com-speed.gif"
-  }
-];
-
 const pageMap: Record<string, PageData> = {
   "/": {
-    title: "AGENOLX - SITUS SLOT ONLINE PALING GACOR DAN TERPERCAYA",
+    title: "PEMULABET - SITUS SLOT ONLINE PALING GACOR DAN TERPERCAYA",
     heading: "Beranda",
     kind: "home",
     icon: "https://cdn-proxy.globalcontentcloud.com/456/dist/img/slots-muted.a305ba0.svg",
@@ -370,26 +337,26 @@ const pageMap: Record<string, PageData> = {
     games: slotGames
   },
   "/register": {
-    title: "AGENOLX - register",
+    title: "PEMULABET - register",
     heading: "Daftar",
     kind: "register"
   },
   "/exclusive": {
-    title: "AGENOLX - Eksklusif",
+    title: "PEMULABET - Eksklusif",
     heading: "Eksklusif",
     kind: "catalog",
     icon: "https://cdn-proxy.globalcontentcloud.com/456/dist/img/exclusive.ab7549b.svg",
     games: featuredGames
   },
   "/sports": {
-    title: "AGENOLX - Sportsbook",
+    title: "PEMULABET - Sportsbook",
     heading: "Sports",
     kind: "catalog",
     icon: "https://cdn-proxy.globalcontentcloud.com/456/dist/img/sports.92624ce.svg",
     games: sportsGames
   },
   "/slot/category/hot": {
-    title: "AGENOLX - Hot",
+    title: "PEMULABET - Hot",
     heading: "Hot Slots",
     kind: "catalog",
     icon: "https://cdn-proxy.globalcontentcloud.com/common/dark/slot/hot.svg",
@@ -397,7 +364,7 @@ const pageMap: Record<string, PageData> = {
     games: slotGames
   },
   "/slot/category/new": {
-    title: "AGENOLX - New",
+    title: "PEMULABET - New",
     heading: "New",
     kind: "catalog",
     icon: "https://cdn-proxy.globalcontentcloud.com/common/dark/slot/new.svg",
@@ -405,7 +372,7 @@ const pageMap: Record<string, PageData> = {
     games: slotGames
   },
   "/slot/category/exclusive": {
-    title: "AGENOLX - Exclusive",
+    title: "PEMULABET - Exclusive",
     heading: "Exclusive",
     kind: "catalog",
     icon: "https://cdn-proxy.globalcontentcloud.com/common/dark/slot/exclusive.svg",
@@ -413,21 +380,21 @@ const pageMap: Record<string, PageData> = {
     games: slotGames
   },
   "/casino/category/lobby": {
-    title: "AGENOLX - Live Casino",
+    title: "PEMULABET - Live Casino",
     heading: "Casino",
     kind: "catalog",
     icon: "https://cdn-proxy.globalcontentcloud.com/456/dist/img/casino.c79b5be.svg",
     games: featuredGames
   },
   "/casino/category/top": {
-    title: "AGENOLX - Live Casino",
+    title: "PEMULABET - Live Casino",
     heading: "Casino",
     kind: "catalog",
     icon: "https://cdn-proxy.globalcontentcloud.com/456/dist/img/casino.c79b5be.svg",
     games: featuredGames
   },
   "/poker": {
-    title: "AGENOLX - Poker",
+    title: "PEMULABET - Poker",
     heading: "Poker",
     kind: "catalog",
     icon: "https://cdn-proxy.globalcontentcloud.com/456/dist/img/poker.308b1f0.svg",
@@ -435,60 +402,60 @@ const pageMap: Record<string, PageData> = {
     games: pokerGames
   },
   "/lotto": {
-    title: "AGENOLX - lotto",
+    title: "PEMULABET - lotto",
     heading: "Lotto",
     kind: "catalog",
     icon: "https://cdn-proxy.globalcontentcloud.com/456/dist/img/lotto.dbcbcac.svg",
     games: lottoGames
   },
   "/arcade/category/hot": {
-    title: "AGENOLX - Arcade",
+    title: "PEMULABET - Arcade",
     heading: "Arcade",
     kind: "catalog",
     icon: "https://cdn-proxy.globalcontentcloud.com/456/dist/img/arcade.98c6117.svg",
     games: arcadeGames
   },
   "/fishing": {
-    title: "AGENOLX - fishing",
+    title: "PEMULABET - fishing",
     heading: "Fishing",
     kind: "catalog",
     icon: "https://cdn-proxy.globalcontentcloud.com/456/dist/img/fishing.2e7df1a.svg",
     games: fishingGames
   },
   "/promotions/all": {
-    title: "AGENOLX - Promosi",
+    title: "PEMULABET - Promosi",
     heading: "Promosi",
     kind: "promotions",
     category: "all"
   },
   "/promotions/casino": {
-    title: "AGENOLX - Promosi",
+    title: "PEMULABET - Promosi",
     heading: "Promosi",
     kind: "promotions",
     category: "casino"
   },
   "/promosi": {
-    title: "AGENOLX - Promosi",
+    title: "PEMULABET - Promosi",
     heading: "Promosi",
     kind: "promotions",
     category: "all"
   },
   "/leaderboard/providers": {
-    title: "AGENOLX - Leaderboard",
+    title: "PEMULABET - Leaderboard",
     heading: "Leaderboard",
     kind: "catalog",
     icon: "https://cdn-proxy.globalcontentcloud.com/456/dist/img/leaderboard.d4577d8.svg",
     games: featuredGames
   },
   "/contact": {
-    title: "AGENOLX - contact",
+    title: "PEMULABET - contact",
     heading: "Kontak",
     kind: "catalog",
     icon: "https://cdn-proxy.globalcontentcloud.com/456/dist/img/chat.022cca6.svg",
     games: featuredGames
   },
   "/referral": {
-    title: "AGENOLX - Referral",
+    title: "PEMULABET - Referral",
     heading: "Referral",
     kind: "catalog",
     icon: "https://cdn-proxy.globalcontentcloud.com/456/dist/img/referral.ffa5ea8.svg",

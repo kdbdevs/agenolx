@@ -393,10 +393,12 @@ function MobileRunningText() {
   return (
     <div className="running-text running-text--primary rebuild-home-mobile-running">
       <i className="icon-volume icon--md" aria-hidden="true" />
-      <span>
-        Agenolx! Silahkan masuk atau daftar jika anda belum memiliki akun. Jadi pemenang berikutnya dan rasakan
-        keseruan bermain di Agenolx!
-      </span>
+      <div className="snapshot-marquee">
+        <span className="snapshot-marquee__inner">
+          Selamat datang di Pemulabet! Silahkan masuk atau daftar jika anda belum memiliki akun. Jadi pemenang
+          berikutnya dan rasakan keseruan bermain di Pemulabet!
+        </span>
+      </div>
     </div>
   );
 }

@@ -30,14 +30,14 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
   if (path === "/login") {
     return {
-      title: "AGENOLX - login",
-      description: "Masuk AGENOLX"
+      title: "PEMULABET - login",
+      description: "Masuk PEMULABET"
     };
   }
 
   return {
     title: page.title,
-    description: path === "/" ? "Situs slot online paling gacor dan terpercaya" : "AGENOLX"
+    description: path === "/" ? "Situs slot online paling gacor dan terpercaya" : "PEMULABET"
   };
 }
 

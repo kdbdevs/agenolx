@@ -1,3 +1,4 @@
+import { brand } from "@/lib/content";
 import type { AuthenticatedUser } from "@/lib/session";
 
 type BreadcrumbLink = [label: string, href: string];
@@ -43,7 +44,6 @@ export function AuthenticatedDesktopUserWidget({ user, activeDeposit = false }: 
 
 export function AuthenticatedMobileHeader({
   user,
-  assetRoot,
   activeLabel,
   links = defaultMobileLinks,
   depositActive = false
@@ -60,7 +60,7 @@ export function AuthenticatedMobileHeader({
         <div className="app-header__main">
           <div className="app-brand">
             <a href="/" className="app-link--active">
-              <img src={`${assetRoot}logo.png`} alt="AGENOLX" loading="lazy" className="app-logo" />
+              <img src={brand.logo} alt={brand.name} loading="lazy" className="app-logo" />
             </a>
           </div>
           <div className="app-header__widgets">

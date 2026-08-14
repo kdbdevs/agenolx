@@ -7,7 +7,7 @@ import {
 } from "@/components/authenticated-chrome";
 import { DesktopFooter, DesktopFooterText } from "@/components/desktop-home-snapshot";
 import { MobileFooterText, MobileSnapshotFooter } from "@/components/mobile-home-snapshot";
-import { brand, floatingLinks, isActivePath, navItems } from "@/lib/content";
+import { brand, isActivePath, navItems } from "@/lib/content";
 import type { AuthenticatedUser } from "@/lib/session";
 
 type AppShellProps = {
@@ -179,10 +179,12 @@ function RunningText() {
   return (
     <div className="running-text running-text--d running-text--light rebuild-running">
       <i className="icon-volume icon--md" aria-hidden="true" />
-      <span className="rebuild-running__text">
-        Agenolx! Silahkan masuk atau daftar jika anda belum memiliki akun. Jadi pemenang berikutnya dan rasakan
-        keseruan bermain di Agenolx!
-      </span>
+      <div className="snapshot-marquee">
+        <span className="snapshot-marquee__inner">
+          Selamat datang di Pemulabet! Silahkan masuk atau daftar jika anda belum memiliki akun. Jadi pemenang
+          berikutnya dan rasakan keseruan bermain di Pemulabet!
+        </span>
+      </div>
     </div>
   );
 }
@@ -233,33 +235,7 @@ function Breadcrumbs({ activePath }: { activePath: string }) {
 }
 
 function FloatingContactMenu() {
-  return (
-    <>
-      <button className="agen-toggle-btn" type="button">
-        ☰ Menu
-      </button>
-      <aside className="agen-social">
-        <h3>Menu Cepat</h3>
-        <p>Akses Menu Cepat Agenolx</p>
-        <ul>
-          {floatingLinks.map((item) => (
-            <li key={item.href}>
-              <Link href={item.href} target="_blank" rel="noopener noreferrer">
-                <img src={item.image} alt={item.label} />
-                <span className="agen-info">
-                  <span>{item.label}</span>
-                  <small>{item.sublabel}</small>
-                </span>
-              </Link>
-            </li>
-          ))}
-        </ul>
-        <button className="agen-close-btn" type="button">
-          ✖ Close Menu
-        </button>
-      </aside>
-    </>
-  );
+  return null;
 }
 
 function BottomNav({ activePath, user }: { activePath: string; user?: AuthenticatedUser | null }) {

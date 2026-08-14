@@ -14,6 +14,7 @@ import {
   MobileSnapshotFooter
 } from "./mobile-home-snapshot";
 import { AuthenticatedMobileHeader, AuthenticatedMobileStickyFooter, type AuthSnapshotProps } from "@/components/authenticated-chrome";
+import { brand } from "@/lib/content";
 
 export type SlotCategory = "hot" | "new" | "exclusive";
 
@@ -297,7 +298,7 @@ function MobileSlotHeader({ user, assetRoot }: AuthSnapshotProps & { assetRoot: 
         <div className="app-header__main">
           <div className="app-brand">
             <a href="/" className="app-link--active">
-              <img src={`${assetRoot}logo.png`} alt="AGENOLX" loading="lazy" className="app-logo" />
+              <img src={brand.logo} alt={brand.name} loading="lazy" className="app-logo" />
             </a>
           </div>
           <div className="app-header__widgets">

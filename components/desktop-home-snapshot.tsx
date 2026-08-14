@@ -1,6 +1,7 @@
 import { snapshotFooterPartners, snapshotPaymentMethods } from "./mobile-home-snapshot";
 
 import { AuthenticatedDesktopUserWidget, type AuthSnapshotProps } from "@/components/authenticated-chrome";
+import { brand } from "@/lib/content";
 
 const D = "/index_files/";
 
@@ -171,14 +172,6 @@ const exclusiveTiles = [
   ["Live Mania", "livemania.webp"]
 ] satisfies Array<[string, string]>;
 
-const quickMenu = [
-  ["RTP SLOT", "Cek RTP Slot Hari Ini", "GIF-RTP-SLOT-ezgif.com-speed.gif", "https://surkale.me/AgenolxRtp/"],
-  ["Prediksi Bola", "Cek Prediksi Terpercaya Hari Ini", "prediksi-bola-ezgif.com-speed.gif", "https://yakale.me/AgenBolaMania"],
-  ["Bukti Jackpot", "Cek Bukti Jackpot Hari Ini", "buktijepe-ezgif.com-speed.gif", "https://surkale.me/AgenolxBukti/"],
-  ["Telegram Agenolx", "Telegram Agenolx Hari Ini", "telegram-ezgif.com-speed.gif", "https://hokikale.me/AGENOLXTELE"],
-  ["Whatsapp Agenolx", "Whatsapp Agenolx Hari Ini", "icon-wa-ezgif.com-speed.gif", "https://hokikale.me/WAAGENOLX"]
-] satisfies Array<[string, string, string, string]>;
-
 export function DesktopHomeSnapshot({ user }: AuthSnapshotProps = {}) {
   return (
     <div id="__app-desktop">
@@ -230,7 +223,7 @@ export function DesktopHeader({ user, activeDeposit = false }: AuthSnapshotProps
         <div className="app-header__main">
           <div className="app-brand">
             <a href="/" aria-current="page" className="app-link--exact-active app-link--active">
-              <img src={`${D}logo.png`} alt="AGENOLX" loading="lazy" className="app-logo" />
+              <img src={brand.logo} alt={brand.name} loading="lazy" className="app-logo" />
             </a>
           </div>
           <div className="app-header__widgets">
@@ -304,7 +297,9 @@ export function RunningText() {
   return (
     <div className="running-text running-text--d running-text--light">
       <i className="icon-volume icon--md" />
-      <div className="snapshot-marquee">Selamat datang di Agenolx! Silahkan masuk atau daftar jika anda belum memiliki akun. Jadi pemenang berikutnya dan rasakan keseruan bermain di Agenolx!</div>
+      <div className="snapshot-marquee">
+        <span className="snapshot-marquee__inner">Selamat datang di Pemulabet! Silahkan masuk atau daftar jika anda belum memiliki akun. Jadi pemenang berikutnya dan rasakan keseruan bermain di Pemulabet!</span>
+      </div>
     </div>
   );
 }
@@ -834,44 +829,9 @@ function FooterGroup({ type, title, items }: { type: string; title: string; item
 }
 
 export function DesktopQuickMenu() {
-  return (
-    <>
-      <div className="agen-toggle-btn">☰ Menu</div>
-      <nav className="agen-social">
-        <h3>Menu Cepat</h3>
-        <p>Akses Menu Cepat Agenolx</p>
-        <ul>
-          {quickMenu.map(([label, sublabel, image, href]) => (
-            <li key={label}>
-              <a href={href} target="_blank" rel="noopener noreferrer">
-                <img src={`${D}${image}`} alt={label} />
-                <div className="agen-info">
-                  <span>{label}</span>
-                  <small>{sublabel}</small>
-                </div>
-              </a>
-            </li>
-          ))}
-        </ul>
-        <button className="agen-close-btn" type="button">
-          ✖ Close Menu
-        </button>
-      </nav>
-    </>
-  );
+  return null;
 }
 
 export function DesktopFloatingLiveChat() {
-  return (
-    <div className="floating">
-      <ul className="floating--left floating--livechat" />
-      <ul className="floating--right floating--livechat">
-        <li className="floating__item">
-          <a href="https://direct.lc.chat/15432000/" target="_blank">
-            <img src={`${D}icon_production_456_2621.gif`} alt="LIVE CHAT" />
-          </a>
-        </li>
-      </ul>
-    </div>
-  );
+  return null;
 }

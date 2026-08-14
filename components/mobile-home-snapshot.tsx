@@ -1,4 +1,5 @@
 import { AuthenticatedMobileHeader, AuthenticatedMobileStickyFooter, type AuthSnapshotProps } from "@/components/authenticated-chrome";
+import { brand } from "@/lib/content";
 
 const A = "/index-mobile_files/";
 
@@ -221,14 +222,6 @@ const footerLinkGroups = [
 export const snapshotPaymentMethods = paymentMethods;
 export const snapshotFooterPartners = footerPartners;
 
-const quickMenu = [
-  ["RTP SLOT", "Cek RTP Slot Hari Ini", "GIF-RTP-SLOT-ezgif.com-speed.gif", "https://surkale.me/AgenolxRtp/"],
-  ["Prediksi Bola", "Cek Prediksi Terpercaya Hari Ini", "prediksi-bola-ezgif.com-speed.gif", "https://yakale.me/AgenBolaMania"],
-  ["Bukti Jackpot", "Cek Bukti Jackpot Hari Ini", "buktijepe-ezgif.com-speed.gif", "https://surkale.me/AgenolxBukti/"],
-  ["Telegram Agenolx", "Telegram Agenolx Hari Ini", "telegram-ezgif.com-speed.gif", "https://hokikale.me/AGENOLXTELE"],
-  ["Whatsapp Agenolx", "Whatsapp Agenolx Hari Ini", "icon-wa-ezgif.com-speed.gif", "https://hokikale.me/WAAGENOLX"]
-];
-
 export function MobileHomeSnapshot({ user }: AuthSnapshotProps = {}) {
   return (
     <div id="__app">
@@ -243,8 +236,10 @@ export function MobileHomeSnapshot({ user }: AuthSnapshotProps = {}) {
                 <div className="running-text running-text--primary">
                   <i className="icon-volume icon--md" />
                   <div className="snapshot-marquee">
-                    Selamat datang di Agenolx! Silahkan masuk atau daftar jika anda belum memiliki akun. Jadi pemenang
-                    berikutnya dan rasakan keseruan bermain di Agenolx!
+                    <span className="snapshot-marquee__inner">
+                      Selamat datang di Pemulabet! Silahkan masuk atau daftar jika anda belum memiliki akun. Jadi
+                      pemenang berikutnya dan rasakan keseruan bermain di Pemulabet!
+                    </span>
                   </div>
                 </div>
                 <CategoryMenu />
@@ -317,7 +312,7 @@ function SnapshotHeader({ user }: AuthSnapshotProps = {}) {
         <div className="app-header__main">
           <div className="app-brand">
             <a href="/" aria-current="page" className="app-link--exact-active app-link--active">
-              <img src={`${A}logo.png`} alt="AGENOLX" className="app-logo" />
+              <img src={brand.logo} alt={brand.name} className="app-logo" />
             </a>
           </div>
           <div className="app-header__widgets">
@@ -1001,44 +996,9 @@ export function MobileStickyFooter({ user, activePath = "/" }: AuthSnapshotProps
 }
 
 export function MobileFloatingLiveChat() {
-  return (
-    <div className="floating">
-      <ul className="floating--left floating--livechat" />
-      <ul className="floating--right floating--livechat">
-        <li className="floating__item">
-          <a href="https://direct.lc.chat/15432000/" target="_blank">
-            <img src={`${A}icon_production_456_2621.gif`} alt="LIVE CHAT" />
-          </a>
-        </li>
-      </ul>
-    </div>
-  );
+  return null;
 }
 
 export function MobileQuickFloatingMenu() {
-  return (
-    <>
-      <div className="agen-toggle-btn" id="agenToggleButton">
-        ☰ Menu
-      </div>
-      <nav className="agen-social" id="agenSocialMenu">
-        <h3>Menu Cepat</h3>
-        <p>Akses Menu Cepat Agenolx</p>
-        <ul>
-          {quickMenu.map(([label, sublabel, image, href]) => (
-            <li key={label}>
-              <a href={href} target="_blank" rel="noopener noreferrer">
-                <img src={`${A}${image}`} alt={label} />
-                <div className="agen-info">
-                  <span>{label}</span>
-                  <small>{sublabel}</small>
-                </div>
-              </a>
-            </li>
-          ))}
-        </ul>
-        <button className="agen-close-btn">✖ Close Menu</button>
-      </nav>
-    </>
-  );
+  return null;
 }

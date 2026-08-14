@@ -14,6 +14,7 @@ import {
   MobileSnapshotFooter
 } from "./mobile-home-snapshot";
 import { AuthenticatedMobileHeader, AuthenticatedMobileStickyFooter, type AuthSnapshotProps } from "@/components/authenticated-chrome";
+import { brand } from "@/lib/content";
 import { splitPaymentProviders, type PaymentProvider } from "@/lib/payment-providers";
 
 export type StaticSnapshotKey =
@@ -258,7 +259,7 @@ function MobileStaticHeader({ activeLabel, assetRoot, user }: { activeLabel?: st
         <div className="app-header__main">
           <div className="app-brand">
             <a href="/" className="app-link--active">
-              <img src={`${assetRoot}logo.png`} alt="AGENOLX" loading="lazy" className="app-logo" />
+              <img src={brand.logo} alt={brand.name} loading="lazy" className="app-logo" />
             </a>
           </div>
           <div className="app-header__widgets">

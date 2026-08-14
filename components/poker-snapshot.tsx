@@ -14,6 +14,7 @@ import {
   MobileSnapshotFooter
 } from "./mobile-home-snapshot";
 import { AuthenticatedMobileHeader, AuthenticatedMobileStickyFooter, type AuthSnapshotProps } from "@/components/authenticated-chrome";
+import { brand } from "@/lib/content";
 
 const MOBILE_ASSET_ROOT = "/poker-mobile_files/";
 const POKER_DESKTOP_SOURCE = join(process.cwd(), "html", "statis", "poker.html");
@@ -100,7 +101,7 @@ function MobilePokerHeader({ user }: AuthSnapshotProps = {}) {
         <div className="app-header__main">
           <div className="app-brand">
             <a href="/" className="app-link--active">
-              <img src={`${MOBILE_ASSET_ROOT}logo.png`} alt="AGENOLX" loading="lazy" className="app-logo" />
+              <img src={brand.logo} alt={brand.name} loading="lazy" className="app-logo" />
             </a>
           </div>
           <div className="app-header__widgets">

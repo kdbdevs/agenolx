@@ -7,11 +7,12 @@ import "./source-unscoped.css";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "AGENOLX",
-  description: "AGENOLX rebuild",
+  title: "PEMULABET",
+  description: "PEMULABET",
   icons: {
-    icon: "https://cdn-proxy.globalcontentcloud.com/456/logo/favicon.ico",
-    apple: "https://cdn-proxy.globalcontentcloud.com/456/dist/icons/icon_512x512.21627c.png"
+    icon: [{ url: "/fav-pemula-bet.webp", type: "image/webp" }],
+    shortcut: [{ url: "/fav-pemula-bet.webp", type: "image/webp" }],
+    apple: [{ url: "/fav-pemula-bet.webp", type: "image/webp" }]
   }
 };
 
@@ -20,7 +21,7 @@ export const viewport: Viewport = {
   initialScale: 1,
   maximumScale: 1,
   userScalable: false,
-  themeColor: "#1d2b43"
+  themeColor: "#0f2f1f"
 };
 
 export default async function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {

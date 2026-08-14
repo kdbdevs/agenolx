@@ -15,6 +15,7 @@ import {
   MobileStickyFooter
 } from "./mobile-home-snapshot";
 import { AuthenticatedMobileHeader, type AuthSnapshotProps } from "@/components/authenticated-chrome";
+import { brand } from "@/lib/content";
 
 const DESKTOP_ASSET_ROOT = "/exclusive_files/";
 const MOBILE_ASSET_ROOT = "/exclusive-mobile_files/";
@@ -104,7 +105,7 @@ function MobileExclusiveHeader({ user }: AuthSnapshotProps = {}) {
         <div className="app-header__main">
           <div className="app-brand">
             <a href="/" className="app-link--active">
-              <img src={`${MOBILE_ASSET_ROOT}logo.png`} alt="AGENOLX" loading="lazy" className="app-logo" />
+              <img src={brand.logo} alt={brand.name} loading="lazy" className="app-logo" />
             </a>
           </div>
           <div className="app-header__widgets">
