@@ -1,5 +1,5 @@
 import bcrypt from "bcryptjs";
-import { NextResponse, type NextRequest } from "next/server";
+import type { NextRequest } from "next/server";
 import { z } from "zod";
 import { pool } from "@/lib/db";
 import { createSessionToken, setAuthCookie } from "@/lib/auth";

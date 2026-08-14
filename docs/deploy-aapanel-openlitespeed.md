@@ -5,6 +5,7 @@ Target:
 - Domain: `pemulabet.com`
 - Server IP: `159.65.130.3`
 - App port: `127.0.0.1:3000`
+- Admin app port: `127.0.0.1:3001`
 - Repo: `https://github.com/kdbdevs/agenolx.git`
 
 ## DNS
@@ -76,6 +77,8 @@ MYSQL_DATABASE="agenolx"
 MYSQL_USER="agenolx"
 MYSQL_PASSWORD="CHANGE_DATABASE_PASSWORD"
 SESSION_SECRET="CHANGE_WITH_OPENSSL_RAND_HEX_32"
+ADMIN_USERNAME="CHANGE_ADMIN_USERNAME"
+ADMIN_PASSWORD="CHANGE_STRONG_ADMIN_PASSWORD"
 ```
 
 Generate `SESSION_SECRET`:
@@ -89,6 +92,7 @@ Apply schema and build:
 ```bash
 npm run db:check
 npm run db:schema
+npm run admin:create
 npm run build
 ```
 
@@ -101,6 +105,11 @@ pm2 start ecosystem.config.cjs --env production
 pm2 save
 pm2 status
 ```
+
+The PM2 config starts:
+
+- `agenolx` on `127.0.0.1:3000`
+- `pemulabet-admin` on `127.0.0.1:3001`
 
 Enable PM2 on boot:
 
@@ -131,6 +140,15 @@ Then add a reverse proxy:
 - Sent domain: `$host`
 - Cache: off
 
+For the admin subdomain, add `admin.pemulabet.com` and proxy it to:
+
+- Proxy name: `pemulabet_admin`
+- Target URL: `http://127.0.0.1:3001`
+- Sent domain: `$host`
+- Cache: off
+
+The app redirects `/` to `/admin` automatically when accessed through an `admin.*` hostname or port `3001`.
+
 If using OpenLiteSpeed rewrite instead of aaPanel reverse proxy, route all traffic to the Node process:
 
 ```apache
@@ -156,8 +174,9 @@ cd /www/wwwroot/pemulabet.com
 git pull
 npm ci
 npm run db:schema
+npm run admin:create
 npm run build
-pm2 restart agenolx
+pm2 restart agenolx pemulabet-admin
 pm2 save
 ```
 
@@ -165,6 +184,8 @@ pm2 save
 
 ```bash
 curl -I http://127.0.0.1:3000
+curl -I http://127.0.0.1:3001/admin
 curl -I http://pemulabet.com
 pm2 logs agenolx --lines 80
+pm2 logs pemulabet-admin --lines 80
 ```

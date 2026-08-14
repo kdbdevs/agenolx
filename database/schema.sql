@@ -76,6 +76,54 @@ create table if not exists deposits (
   key deposits_user_status_idx (user_id, status)
 );
 
+alter table deposits
+  add column reviewed_by bigint unsigned null after reference;
+
+alter table deposits
+  add column reviewed_at timestamp null after reviewed_by;
+
+alter table deposits
+  add column admin_notes varchar(1000) null after reviewed_at;
+
+create table if not exists withdrawals (
+  id bigint unsigned not null auto_increment primary key,
+  user_id bigint unsigned not null,
+  user_bank_account_id bigint unsigned null,
+  amount decimal(18,2) not null,
+  status enum('pending', 'approved', 'rejected', 'cancelled') not null default 'pending',
+  reference varchar(160) null,
+  admin_notes varchar(1000) null,
+  reviewed_by bigint unsigned null,
+  reviewed_at timestamp null,
+  created_at timestamp not null default current_timestamp,
+  updated_at timestamp not null default current_timestamp on update current_timestamp,
+  key withdrawals_user_status_idx (user_id, status)
+);
+
+create table if not exists admin_users (
+  id bigint unsigned not null auto_increment primary key,
+  username varchar(80) not null,
+  password_hash varchar(255) not null,
+  display_name varchar(160) null,
+  role enum('owner', 'manager', 'finance') not null default 'owner',
+  status enum('active', 'disabled') not null default 'active',
+  created_at timestamp not null default current_timestamp,
+  updated_at timestamp not null default current_timestamp on update current_timestamp,
+  unique key admin_users_username_unique (username)
+);
+
+create table if not exists audit_logs (
+  id bigint unsigned not null auto_increment primary key,
+  actor_admin_id bigint unsigned null,
+  action varchar(120) not null,
+  entity_type varchar(80) not null,
+  entity_id varchar(120) not null,
+  metadata json null,
+  created_at timestamp not null default current_timestamp,
+  key audit_logs_entity_idx (entity_type, entity_id),
+  key audit_logs_actor_idx (actor_admin_id)
+);
+
 create table if not exists game_providers (
   id bigint unsigned not null auto_increment primary key,
   slug varchar(120) not null,

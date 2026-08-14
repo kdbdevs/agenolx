@@ -1,0 +1,126 @@
+import { saveBank } from "@/app/admin/actions";
+import { AdminCard, AdminShell, DateText, EmptyState, FilterBar, StatusBadge } from "@/components/admin/admin-shell";
+import { getAdminBanks, parseAdminFilter } from "@/lib/admin-data";
+import { requireAdmin } from "@/lib/admin-auth";
+
+type PageProps = {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+};
+
+export default async function AdminBanksPage({ searchParams }: PageProps) {
+  const admin = await requireAdmin();
+  const query = await searchParams;
+  const filter = parseAdminFilter(query);
+  const banks = await getAdminBanks(filter);
+
+  return (
+    <AdminShell
+      admin={admin}
+      active="/admin/banks"
+      title="Banks"
+      description="Atur channel bank dan e-money untuk register, deposit, dan withdrawal."
+    >
+      <div className="admin-grid" style={{ gap: "18px" }}>
+        <AdminCard title="Tambah Bank / E-money">
+          <form className="admin-form-grid admin-form-grid--four" action={saveBank}>
+            <div className="admin-field">
+              <label>Kode</label>
+              <input name="code" placeholder="BCA / 54" required />
+            </div>
+            <div className="admin-field">
+              <label>Nama</label>
+              <input name="name" placeholder="BCA" required />
+            </div>
+            <div className="admin-field">
+              <label>Tipe</label>
+              <select name="type" defaultValue="bank">
+                <option value="bank">Bank</option>
+                <option value="e_money">E-money</option>
+              </select>
+            </div>
+            <label className="admin-checkbox">
+              <input type="checkbox" name="isActive" defaultChecked />
+              Aktif
+            </label>
+            <button className="admin-button" type="submit">Tambah</button>
+            <div className="admin-field" style={{ gridColumn: "1 / -1" }}>
+              <label>Logo URL</label>
+              <input name="logoUrl" placeholder="Opsional" />
+            </div>
+          </form>
+        </AdminCard>
+
+        <AdminCard
+          title="Daftar Bank"
+          action={
+            <FilterBar
+              q={filter.q}
+              status={filter.status}
+              statuses={[
+                { value: "active", label: "Active" },
+                { value: "inactive", label: "Inactive" }
+              ]}
+            />
+          }
+        >
+          <div className="admin-table-wrap">
+            <table className="admin-table">
+              <thead>
+                <tr>
+                  <th>Bank</th>
+                  <th>Tipe</th>
+                  <th>Status</th>
+                  <th>Dibuat</th>
+                  <th>Edit</th>
+                </tr>
+              </thead>
+              <tbody>
+                {banks.map((bank) => (
+                  <tr key={bank.id}>
+                    <td>
+                      <strong>{bank.name}</strong>
+                      <small>{bank.code}</small>
+                    </td>
+                    <td>{bank.type}</td>
+                    <td><StatusBadge status={bank.isActive ? "active" : "disabled"} /></td>
+                    <td><DateText value={bank.createdAt} /></td>
+                    <td>
+                      <form className="admin-form-grid admin-form-grid--four" action={saveBank} style={{ padding: 0 }}>
+                        <input type="hidden" name="bankId" value={bank.id} />
+                        <div className="admin-field">
+                          <label>Kode</label>
+                          <input name="code" defaultValue={bank.code} required />
+                        </div>
+                        <div className="admin-field">
+                          <label>Nama</label>
+                          <input name="name" defaultValue={bank.name} required />
+                        </div>
+                        <div className="admin-field">
+                          <label>Tipe</label>
+                          <select name="type" defaultValue={bank.type}>
+                            <option value="bank">Bank</option>
+                            <option value="e_money">E-money</option>
+                          </select>
+                        </div>
+                        <label className="admin-checkbox">
+                          <input type="checkbox" name="isActive" defaultChecked={bank.isActive} />
+                          Aktif
+                        </label>
+                        <button className="admin-button admin-button--dark" type="submit">Simpan</button>
+                        <div className="admin-field" style={{ gridColumn: "1 / -1" }}>
+                          <label>Logo URL</label>
+                          <input name="logoUrl" defaultValue={bank.logoUrl ?? ""} />
+                        </div>
+                      </form>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          {banks.length === 0 ? <EmptyState>Tidak ada bank yang cocok dengan filter.</EmptyState> : null}
+        </AdminCard>
+      </div>
+    </AdminShell>
+  );
+}
