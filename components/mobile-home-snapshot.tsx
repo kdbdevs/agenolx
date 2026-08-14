@@ -108,9 +108,9 @@ const arcadeItems = [
 const trendingSearches = ["dragon", "mahjong", "high", "poker", "spaceman", "sugar", "wild", "bonanza", "aztec", "mega"];
 
 const paymentMethods = [
-  ["", "BCA.svg", "AGENOLX - Metode deposit - BCA"],
-  ["bank-logo--h", "BRI.svg", "AGENOLX - Metode deposit - BRI"],
-  ["", "BNI.svg", "AGENOLX - Metode deposit - BNI"]
+  ["", "BCA.svg", "PEMULABET - Metode deposit - BCA"],
+  ["bank-logo--h", "BRI.svg", "PEMULABET - Metode deposit - BRI"],
+  ["", "BNI.svg", "PEMULABET - Metode deposit - BNI"]
 ] satisfies Array<[string, string, string]>;
 
 const footerPartners = [
@@ -196,7 +196,7 @@ const footerLinkGroups = [
   ],
   [
     "brand",
-    "AGENOLX",
+    "PEMULABET",
     [
       ["/about-us", "Tentang Kami"],
       ["/contact", "Contact"],
@@ -377,7 +377,7 @@ function HeroCarousel() {
                 <a href="/" aria-current="page" className="app-link--exact-active app-link--active" tabIndex={-1}>
                   <img
                     src="https://cdn.globalcontentcloud.com/promotions/promotion_banner_575_.webp"
-                    alt="AGENOLX"
+                    alt="PEMULABET"
                     className="slide"
                   />
                 </a>
@@ -894,7 +894,7 @@ export function MobileFooterText() {
       <div className="footer-text__container">
         <article>
           <p>
-            Agenolx adalah situs slot online paling gacor yang memiliki berbagai provider slot yang bisa memberikan
+            Pemulabet adalah situs slot online paling gacor yang memiliki berbagai provider slot yang bisa memberikan
             jackpot melimpah.
           </p>
         </article>
@@ -954,7 +954,7 @@ export function MobileSnapshotFooter() {
             ))}
           </ul>
         </section>
-        <p className="app-footer__copyright">© 2026 AGENOLX - All rights reserved.</p>
+        <p className="app-footer__copyright">© 2026 PEMULABET - All rights reserved.</p>
       </div>
     </footer>
   );

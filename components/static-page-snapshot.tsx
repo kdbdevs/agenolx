@@ -401,14 +401,22 @@ function readSourceSection(
   const html = sourceHtml[source];
   const match = findSectionByClass(html, classToken);
   if (!match) throw new Error(`Main section ${classToken} not found in ${source}`);
-  return sanitizeStaticHtml(match, forceMobile, activeHref, paymentProviders);
+  let output = sanitizeStaticHtml(match, forceMobile, activeHref, paymentProviders);
+  if (isPromotionSource(source)) {
+    output = sanitizePromotionSnapshotHtml(output);
+  }
+  return output;
 }
 
 function readFooterText(source: StaticSource, forceMobile = false, activeHref?: string) {
   const html = sourceHtml[source];
   const match = findSectionByClass(html, "footer-text");
   if (!match) return "";
-  return sanitizeStaticHtml(match, forceMobile, activeHref);
+  let output = sanitizeStaticHtml(match, forceMobile, activeHref);
+  if (isPromotionSource(source)) {
+    output = replaceLegacyBrandText(output);
+  }
+  return output;
 }
 
 function findSectionByClass(html: string, classToken: string) {
@@ -446,6 +454,28 @@ function sanitizeStaticHtml(
   }
 
   return output;
+}
+
+function isPromotionSource(source: StaticSource) {
+  return source.startsWith("promotions/");
+}
+
+function sanitizePromotionSnapshotHtml(html: string) {
+  return replaceLegacyBrandText(
+    html.replace(/<li\b[^>]*class="[^"]*\bpromotions__item\b[^"]*"[\s\S]*?<\/li>/g, (item) => {
+      if (item.includes("/promotions/all/55") || item.includes("promotion_55_production_456")) {
+        return "";
+      }
+      return item;
+    })
+  );
+}
+
+function replaceLegacyBrandText(html: string) {
+  return html
+    .replace(/\bAGENOLX\b/g, "PEMULABET")
+    .replace(/\bAgenolx\b/g, "Pemulabet")
+    .replace(/\bagenolx\b/g, "pemulabet");
 }
 
 function wireRegisterSnapshotForm(html: string, paymentProviders: readonly PaymentProvider[]) {

@@ -313,7 +313,7 @@ function HomeCarousel() {
             <div tabIndex={-1} data-index="0" aria-hidden="false" className="slick-slide slick-active slick-current">
               <div>
                 <a href="/promotions/all/g705" style={{ width: "100%", display: "inline-block" }}>
-                  <img src={`${D}promotion_banner_705_.webp`} alt="AGENOLX" loading="lazy" className="slide" />
+                  <img src={`${D}promotion_banner_705_.webp`} alt="PEMULABET" loading="lazy" className="slide" />
                 </a>
               </div>
             </div>
@@ -722,10 +722,10 @@ export function DesktopFooterText() {
       <div className="footer-text__container">
         <article>
           <h1>
-            <strong>Agenolx Situs Slot Online Paling Gacor Dan Terpercaya</strong>
+            <strong>Pemulabet Situs Slot Online Paling Gacor Dan Terpercaya</strong>
           </h1>
           <p>
-            Agenolx adalah situs slot online terpercaya yang menyediakan permainan slot online berbagai macam provider slot yang memiliki tingkat kemenangan tinggi dan bukan hanya itu Agenolx juga menyediakan berbagai macam permainan seperti Judi Online Bola, Bandar Togel Online dan masih banyak lainnya.
+            Pemulabet adalah situs slot online terpercaya yang menyediakan permainan slot online berbagai macam provider slot yang memiliki tingkat kemenangan tinggi dan bukan hanya itu Pemulabet juga menyediakan berbagai macam permainan seperti Judi Online Bola, Bandar Togel Online dan masih banyak lainnya.
           </p>
           <p>
             Bersama situs terpercaya ini para pemain akan bermain dengan seru dan nyaman. Daftar sekarang dan nikmati berbagai permainan slot gacor, casino, poker, lotto, arcade, fishing, dan promosi terbaik.
@@ -745,11 +745,11 @@ export function DesktopFooter() {
           <FooterGroup type="links" title="Quick Links" items={desktopBreadcrumbs.slice(0, 9)} />
           <FooterGroup
             type="brand"
-            title="AGENOLX"
+            title="PEMULABET"
             items={[
               ["Tentang Kami", "/about-us"],
               ["Contact", "/contact"],
-              ["AGENOLX LiveChat", "https://secure.livechatinc.com/licence/direct.lc.chat/15432000/v2/open_chat.cgi?groups=0"],
+              ["PEMULABET LiveChat", "https://secure.livechatinc.com/licence/direct.lc.chat/15432000/v2/open_chat.cgi?groups=0"],
               ["Deposit", "/deposit"],
               ["Withdraw", "/withdraw"],
               ["Referral", "/referral"],
@@ -780,7 +780,7 @@ export function DesktopFooter() {
         <section className="app-footer__text" style={{ maxHeight: "10rem" }}>
           <article>
             <p>
-              Agenolx adalah situs slot online terpercaya yang menyediakan permainan slot online berbagai macam provider slot yang memiliki tingkat kemenangan tinggi. Pemain dapat menikmati slot, casino, poker, lotto, arcade, fishing, promosi, dan layanan pelanggan dengan tampilan yang mengikuti snapshot sumber.
+              Pemulabet adalah situs slot online terpercaya yang menyediakan permainan slot online berbagai macam provider slot yang memiliki tingkat kemenangan tinggi. Pemain dapat menikmati slot, casino, poker, lotto, arcade, fishing, promosi, dan layanan pelanggan dengan tampilan yang mengikuti snapshot sumber.
             </p>
           </article>
           <button type="button">Baca lebih</button>
@@ -807,7 +807,7 @@ export function DesktopFooter() {
             ))}
           </ul>
         </section>
-        <p className="app-footer__copyright">© 2026 AGENOLX - All rights reserved.</p>
+        <p className="app-footer__copyright">© 2026 PEMULABET - All rights reserved.</p>
       </div>
     </footer>
   );

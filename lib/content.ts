@@ -279,22 +279,22 @@ export const lottoGames: GameItem[] = [
 
 export const promotions: PromotionItem[] = [
   {
-    title: "EVENT PANJAT TURNOVER AGENOLX",
+    title: "EVENT PANJAT TURNOVER PEMULABET",
     image: "https://cdn.globalcontentcloud.com/promotions/promotion_39_production_456.webp",
     category: "casino",
-    teaser: "Dapatkan Hadiah Grand Prize NINJA R 250 CC dengan aktif bermain Slot dan Live Casino di AGENOLX."
+    teaser: "Dapatkan Hadiah Grand Prize NINJA R 250 CC dengan aktif bermain Slot dan Live Casino di PEMULABET."
   },
   {
     title: "BONUS DEPOSIT NEW MEMBER 100%",
     image: "https://cdn.globalcontentcloud.com/promotions/promotion_40_production_456.webp",
     category: "all",
-    teaser: "Klaim Bonus New Member 100rb + 100rb untuk rekening bank aktif/valid di AGENOLX."
+    teaser: "Klaim Bonus New Member 100rb + 100rb untuk rekening bank aktif/valid di PEMULABET."
   },
   {
     title: "BONUS X-TRA FREECHIP RP 5.000 DOWNLOAD APK",
     image: "https://cdn.globalcontentcloud.com/promotions/promotion_43_production_456.webp",
     category: "other",
-    teaser: "Download aplikasi AGENOLX untuk mendapatkan FREECHIPS Rp 5.000 sekarang juga."
+    teaser: "Download aplikasi PEMULABET untuk mendapatkan FREECHIPS Rp 5.000 sekarang juga."
   },
   {
     title: "BONUS FREESPIN KHUSUS SLOT GAMES HINGGA 200X",
@@ -306,7 +306,7 @@ export const promotions: PromotionItem[] = [
     title: "BONUS ROLLINGAN LIVE CASINO 0.5% SETIAP MINGGU",
     image: "https://cdn.globalcontentcloud.com/promotions/promotion_30_production_456.jpg",
     category: "casino",
-    teaser: "Bonus rollingan mingguan otomatis dari turnover Live Casino di AGENOLX."
+    teaser: "Bonus rollingan mingguan otomatis dari turnover Live Casino di PEMULABET."
   },
   {
     title: "EXTRA BONUS PARLAY HINGGA 15.000.000,-",
