@@ -2746,7 +2746,7 @@ body {
   .static-page-desktop-render {
     display: block;
     min-height: 100vh;
-    background: #000 url("https://photoku.io/images/2026/07/21/AGENOLX-17-AGUSTUS-2026.jpeg") top center / cover fixed no-repeat;
+    background: #000 url("../assets/bg.webp") top center / cover fixed no-repeat;
   }
 }
 
@@ -4669,7 +4669,7 @@ body {
     display: block;
     min-height: 100%;
     color: #fff;
-    background: #000 url(https://photoku.io/images/2026/07/21/AGENOLX-17-AGUSTUS-2026.jpeg) top center / cover fixed no-repeat;
+    background: #000 url("../assets/bg.webp") top center / cover fixed no-repeat;
     padding-bottom: 2rem;
   }
 
@@ -5213,7 +5213,7 @@ color: white;
 }
 
 body {
-    background: #000000 url(https://photoku.io/images/2026/07/21/AGENOLX-17-AGUSTUS-2026.jpeg) center center no-repeat !important;
+    background: #000000 url("../assets/bg.webp") center center no-repeat !important;
     background-attachment: fixed !important;
 background-position: top;
      background-size: cover !important;
