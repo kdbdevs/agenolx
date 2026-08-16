@@ -57,10 +57,12 @@ export function ReferralSubNav({ active }: { active: string }) {
 
 export function ReferralFilterForm({
   filter,
-  mode
+  mode,
+  compact = false
 }: {
   filter: ReferralAdminFilter;
   mode: "links" | "affiliators" | "deposits";
+  compact?: boolean;
 }) {
   const showDates = mode === "deposits";
   const showAffiliateSort = mode === "affiliators";
@@ -68,7 +70,7 @@ export function ReferralFilterForm({
   const statusLabel = mode === "links" ? "Semua status link" : "Semua status user";
 
   return (
-    <form className="admin-filter admin-referral-filter">
+    <form className={`admin-filter admin-referral-filter${compact ? " admin-referral-filter--compact" : ""}`}>
       <input
         name="q"
         placeholder={mode === "links" ? "Cari affiliator / kode link..." : "Cari affiliator..."}

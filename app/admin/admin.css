@@ -418,6 +418,17 @@
   padding: 18px;
 }
 
+.admin-referral-filter--compact {
+  box-sizing: border-box;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  max-width: 100%;
+  padding: 16px 18px 18px;
+}
+
+.admin-referral-filter--compact button {
+  width: 100%;
+}
+
 .admin-referral-table {
   min-width: 1080px;
 }
@@ -656,6 +667,7 @@
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 12px;
+  padding: 18px;
 }
 
 .admin-detail-field {

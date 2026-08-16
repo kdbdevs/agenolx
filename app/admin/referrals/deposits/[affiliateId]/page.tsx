@@ -42,10 +42,6 @@ export default async function AdminReferralDepositDetailPage({ params, searchPar
       </section>
 
       <div className="admin-grid" style={{ gap: "18px" }}>
-        <AdminCard title="Filter Detail Deposit Downline">
-          <ReferralFilterForm filter={filter} mode="deposits" />
-        </AdminCard>
-
         <AdminCard title="Informasi Affiliator">
           <div className="admin-detail-grid">
             <div className="admin-detail-field">
@@ -65,6 +61,10 @@ export default async function AdminReferralDepositDetailPage({ params, searchPar
               <strong><DateText value={detail.affiliate.createdAt} /></strong>
             </div>
           </div>
+        </AdminCard>
+
+        <AdminCard title="Filter Detail Deposit Downline">
+          <ReferralFilterForm filter={filter} mode="deposits" compact />
         </AdminCard>
 
         <AdminCard title={`Detail Downline & Deposit (${filter.dateFrom} sampai ${filter.dateTo})`}>
