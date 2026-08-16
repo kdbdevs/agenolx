@@ -186,11 +186,15 @@ const sourceHtml: Record<StaticSource, string> = {
   "register-mobile.html": readFileSync(join(projectRoot, "html", "statis", "register-mobile.html"), "utf8")
 };
 
-type StaticPageSnapshotProps = { pageKey: StaticSnapshotKey; paymentProviders?: readonly PaymentProvider[] } & AuthSnapshotProps;
+type StaticPageSnapshotProps = {
+  pageKey: StaticSnapshotKey;
+  paymentProviders?: readonly PaymentProvider[];
+  referralCode?: string;
+} & AuthSnapshotProps;
 
-export function DesktopStaticPageSnapshot({ pageKey, user, paymentProviders }: StaticPageSnapshotProps) {
+export function DesktopStaticPageSnapshot({ pageKey, user, paymentProviders, referralCode }: StaticPageSnapshotProps) {
   const config = snapshotConfigs[pageKey];
-  const mainHtml = readSourceSection(config.desktopSource, config.mainClass, false, config.activeHref, paymentProviders);
+  const mainHtml = readSourceSection(config.desktopSource, config.mainClass, false, config.activeHref, paymentProviders, referralCode);
   const footerHtml = readFooterText(config.desktopSource, false, config.activeHref);
 
   return (
@@ -216,10 +220,17 @@ export function DesktopStaticPageSnapshot({ pageKey, user, paymentProviders }: S
   );
 }
 
-export function MobileStaticPageSnapshot({ pageKey, user, paymentProviders }: StaticPageSnapshotProps) {
+export function MobileStaticPageSnapshot({ pageKey, user, paymentProviders, referralCode }: StaticPageSnapshotProps) {
   const config = snapshotConfigs[pageKey];
   const source = config.mobileSource ?? config.desktopSource;
-  const mainHtml = readSourceSection(source, config.mainClass, Boolean(config.forceMobileFromDesktop), config.activeHref, paymentProviders);
+  const mainHtml = readSourceSection(
+    source,
+    config.mainClass,
+    Boolean(config.forceMobileFromDesktop),
+    config.activeHref,
+    paymentProviders,
+    referralCode
+  );
   const footerHtml = readFooterText(source, Boolean(config.forceMobileFromDesktop), config.activeHref);
 
   return (
@@ -396,12 +407,13 @@ function readSourceSection(
   classToken: string,
   forceMobile = false,
   activeHref?: string,
-  paymentProviders: readonly PaymentProvider[] = []
+  paymentProviders: readonly PaymentProvider[] = [],
+  referralCode?: string
 ) {
   const html = sourceHtml[source];
   const match = findSectionByClass(html, classToken);
   if (!match) throw new Error(`Main section ${classToken} not found in ${source}`);
-  let output = sanitizeStaticHtml(match, forceMobile, activeHref, paymentProviders);
+  let output = sanitizeStaticHtml(match, forceMobile, activeHref, paymentProviders, referralCode);
   if (isPromotionSource(source)) {
     output = sanitizePromotionSnapshotHtml(output);
   }
@@ -432,7 +444,8 @@ function sanitizeStaticHtml(
   html: string,
   forceMobile: boolean,
   activeHref?: string,
-  paymentProviders: readonly PaymentProvider[] = []
+  paymentProviders: readonly PaymentProvider[] = [],
+  referralCode?: string
 ) {
   let output = html
     .replace(/https:\/\/agenolx\.com/g, "")
@@ -450,7 +463,7 @@ function sanitizeStaticHtml(
   }
 
   if (output.includes("register-form-1")) {
-    output = wireRegisterSnapshotForm(output, paymentProviders);
+    output = wireRegisterSnapshotForm(output, paymentProviders, referralCode);
   }
 
   return output;
@@ -478,7 +491,7 @@ function replaceLegacyBrandText(html: string) {
     .replace(/\bagenolx\b/g, "pemulabet");
 }
 
-function wireRegisterSnapshotForm(html: string, paymentProviders: readonly PaymentProvider[]) {
+function wireRegisterSnapshotForm(html: string, paymentProviders: readonly PaymentProvider[], referralCode?: string) {
   const formMatch = html.match(/<form\b[^>]*class="[^"]*\bregister-form-1\b[^"]*"[\s\S]*?<\/form>/);
   if (!formMatch) return html;
 
@@ -506,6 +519,7 @@ function wireRegisterSnapshotForm(html: string, paymentProviders: readonly Payme
   wiredForm = renameRegisterInput(wiredForm, /(<label>Password<\/label>[\s\S]*?<input\b)([^>]*)(>)/, "password");
   wiredForm = renameRegisterInput(wiredForm, /(<label>Masukkan kembali Password<\/label>[\s\S]*?<input\b)([^>]*)(>)/, "passwordConfirm");
   wiredForm = renameRegisterInput(wiredForm, /(<label>Kode Referral<\/label>[\s\S]*?<input\b)([^>]*)(>)/, "referralCode");
+  wiredForm = setRegisterInputValue(wiredForm, "referralCode", referralCode);
   wiredForm = renameRegisterInput(wiredForm, /(<div\b[^>]*class="[^"]*\binput-fullname\b[^"]*"[\s\S]*?<input\b)([^>]*)(>)/, "fullName");
   wiredForm = renameRegisterInput(wiredForm, /(<label>E-mail<\/label>[\s\S]*?<input\b)([^>]*)(>)/, "email");
   wiredForm = renameRegisterInput(wiredForm, /(<div\b[^>]*class="[^"]*\binput-phone\b[^"]*"[\s\S]*?<input\b)([^>]*)(>)/, "phone");
@@ -514,6 +528,22 @@ function wireRegisterSnapshotForm(html: string, paymentProviders: readonly Payme
   wiredForm += registerPaymentControllerScript();
 
   return html.replace(formMatch[0], wiredForm);
+}
+
+function escapeAttribute(value: string) {
+  return value
+    .replace(/&/g, "&amp;")
+    .replace(/"/g, "&quot;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
+}
+
+function setRegisterInputValue(html: string, name: string, value?: string) {
+  if (!value) return html;
+  return html.replace(new RegExp(`(<input\\b(?=[^>]*\\sname="${name}")[^>]*)(>)`), (_match, prefix: string, suffix: string) => {
+    const nextAttributes = prefix.replace(/\svalue="[^"]*"/, "");
+    return `${nextAttributes} value="${escapeAttribute(value)}"${suffix}`;
+  });
 }
 
 function renameRegisterInput(html: string, pattern: RegExp, name: string) {

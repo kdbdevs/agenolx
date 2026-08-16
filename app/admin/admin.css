@@ -379,6 +379,52 @@
   white-space: nowrap;
 }
 
+.admin-referral-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 18px;
+}
+
+.admin-referral-tabs a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 36px;
+  padding: 8px 12px;
+  border: 1px solid #d0d5dd;
+  border-radius: 8px;
+  background: #fff;
+  color: #344054;
+  font-size: 0.84rem;
+  font-weight: 800;
+}
+
+.admin-referral-form {
+  grid-template-columns: minmax(220px, 1.4fr) minmax(160px, 0.9fr) minmax(220px, 1.2fr) 110px auto;
+  align-items: end;
+}
+
+.admin-referral-filter {
+  grid-template-columns: minmax(220px, 1.4fr) repeat(4, minmax(130px, 0.8fr)) repeat(4, minmax(150px, 1fr)) auto;
+  width: 100%;
+  padding: 18px;
+}
+
+.admin-referral-table {
+  min-width: 1080px;
+}
+
+.admin-copy-link {
+  display: block;
+  max-width: 360px;
+  overflow: hidden;
+  color: #087443;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
 .admin-form-grid--three {
   grid-template-columns: 1.3fr 180px 1fr auto;
   align-items: end;
@@ -729,7 +775,9 @@
   }
 
   .admin-form-grid--four,
-  .admin-form-grid--three {
+  .admin-form-grid--three,
+  .admin-referral-form,
+  .admin-referral-filter {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
@@ -783,6 +831,8 @@
   .admin-grid--two,
   .admin-form-grid,
   .admin-filter,
+  .admin-referral-form,
+  .admin-referral-filter,
   .admin-detail-grid {
     grid-template-columns: minmax(0, 1fr);
   }

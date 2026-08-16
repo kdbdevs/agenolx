@@ -58,6 +58,47 @@ function makeReferralCode(username: string) {
   return `${prefix}${Math.random().toString(36).slice(2, 8).toUpperCase()}`;
 }
 
+type ReferralTarget = {
+  referrerUserId: number;
+  referralLinkId: number | null;
+};
+
+async function resolveReferralTarget(
+  connection: Awaited<ReturnType<typeof pool.getConnection>>,
+  referralCode: string
+): Promise<ReferralTarget | null> {
+  const code = referralCode.trim();
+  if (!code) return null;
+
+  const [linkRows] = await connection.execute(
+    `select rl.id as referralLinkId, rl.owner_user_id as referrerUserId
+     from referral_links rl
+     join users u on u.id = rl.owner_user_id
+     where rl.code = ? and rl.status = 'active' and u.status = 'active'
+     limit 1`,
+    [code]
+  );
+  const link = (linkRows as Array<{ referralLinkId: number; referrerUserId: number }>)[0];
+  if (link) {
+    return {
+      referrerUserId: Number(link.referrerUserId),
+      referralLinkId: Number(link.referralLinkId)
+    };
+  }
+
+  const [userRows] = await connection.execute(
+    "select id as referrerUserId from users where referral_code = ? and status = 'active' limit 1",
+    [code]
+  );
+  const user = (userRows as Array<{ referrerUserId: number }>)[0];
+  if (!user) return null;
+
+  return {
+    referrerUserId: Number(user.referrerUserId),
+    referralLinkId: null
+  };
+}
+
 async function insertUser(input: z.infer<typeof registerSchema>) {
   const passwordHash = await bcrypt.hash(input.password, 12);
   const connection = await pool.getConnection();
@@ -80,19 +121,27 @@ async function insertUser(input: z.infer<typeof registerSchema>) {
       throw new Error("INVALID_PAYMENT_PROVIDER");
     }
 
+    const referralTarget = await resolveReferralTarget(connection, input.referralCode ?? "");
+    if (input.referralCode && !referralTarget) {
+      throw new Error("INVALID_REFERRAL_CODE");
+    }
+
     let userId = 0;
     for (let attempt = 0; attempt < 5; attempt += 1) {
       const referralCode = makeReferralCode(input.username);
       try {
         const [result] = await connection.execute(
-          `insert into users (username, email, phone, password_hash, referral_code, status, locale)
-           values (?, ?, ?, ?, ?, 'active', 'id')`,
+          `insert into users
+             (username, email, phone, password_hash, referral_code, referrer_user_id, referral_link_id, status, locale)
+           values (?, ?, ?, ?, ?, ?, ?, 'active', 'id')`,
           [
             input.username,
             input.email || null,
             input.phone || null,
             passwordHash,
-            referralCode
+            referralCode,
+            referralTarget?.referrerUserId ?? null,
+            referralTarget?.referralLinkId ?? null
           ]
         );
         userId = Number((result as { insertId: number }).insertId);
@@ -157,6 +206,9 @@ export async function POST(request: NextRequest) {
     }
     if ((error as Error).message === "INVALID_PAYMENT_PROVIDER") {
       return redirectWithError(request, "Bank atau e-money tidak valid");
+    }
+    if ((error as Error).message === "INVALID_REFERRAL_CODE") {
+      return redirectWithError(request, "Kode referral tidak valid atau sudah tidak aktif");
     }
     console.error(error);
     return redirectWithError(request, "Register gagal diproses");

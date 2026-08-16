@@ -26,6 +26,8 @@ export const users = mysqlTable(
     phone: varchar("phone", { length: 32 }),
     passwordHash: varchar("password_hash", { length: 255 }).notNull(),
     referralCode: varchar("referral_code", { length: 32 }).notNull(),
+    referrerUserId: bigint("referrer_user_id", { mode: "number", unsigned: true }),
+    referralLinkId: bigint("referral_link_id", { mode: "number", unsigned: true }),
     status: mysqlEnum("status", ["active", "locked", "suspended"]).default("active").notNull(),
     locale: varchar("locale", { length: 8 }).default("id").notNull(),
     ...timestamps
@@ -34,6 +36,24 @@ export const users = mysqlTable(
     uniqueIndex("users_username_unique").on(table.username),
     uniqueIndex("users_referral_code_unique").on(table.referralCode),
     uniqueIndex("users_email_unique").on(table.email)
+  ]
+);
+
+export const referralLinks = mysqlTable(
+  "referral_links",
+  {
+    id: bigint("id", { mode: "number", unsigned: true }).autoincrement().primaryKey(),
+    code: varchar("code", { length: 32 }).notNull(),
+    ownerUserId: bigint("owner_user_id", { mode: "number", unsigned: true }).notNull(),
+    label: varchar("label", { length: 160 }),
+    status: mysqlEnum("status", ["active", "disabled"]).default("active").notNull(),
+    createdBy: bigint("created_by", { mode: "number", unsigned: true }),
+    ...timestamps
+  },
+  (table) => [
+    uniqueIndex("referral_links_code_unique").on(table.code),
+    index("referral_links_owner_idx").on(table.ownerUserId),
+    index("referral_links_status_idx").on(table.status)
   ]
 );
 

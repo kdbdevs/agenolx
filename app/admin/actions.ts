@@ -1,5 +1,6 @@
 "use server";
 
+import { randomBytes } from "node:crypto";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { requireAdmin } from "@/lib/admin-auth";
@@ -19,6 +20,24 @@ const bankSchema = z.object({
   depositAccountName: z.string().trim().max(160).optional().or(z.literal("")),
   depositAccountNumber: z.string().trim().max(80).optional().or(z.literal("")),
   isActive: z.boolean()
+});
+
+const referralLinkSchema = z.object({
+  ownerUserId: z.coerce.number().int().positive(),
+  code: z
+    .string()
+    .trim()
+    .max(32)
+    .regex(/^[a-zA-Z0-9_-]*$/, "Kode referral hanya boleh huruf, angka, underscore, dan dash")
+    .optional()
+    .or(z.literal("")),
+  label: z.string().trim().max(160).optional().or(z.literal("")),
+  isActive: z.boolean()
+});
+
+const referralLinkStatusSchema = z.object({
+  referralLinkId: z.coerce.number().int().positive(),
+  status: z.enum(["active", "disabled"])
 });
 
 const reviewDepositSchema = z.object({
@@ -43,6 +62,14 @@ const withdrawalSchema = z.object({
 function value(formData: FormData, name: string) {
   const raw = formData.get(name);
   return typeof raw === "string" ? raw : "";
+}
+
+function normalizeReferralCode(code: string) {
+  return code.trim().replace(/\s+/g, "").toUpperCase();
+}
+
+function makeReferralLinkCode() {
+  return `REF${randomBytes(4).toString("hex").toUpperCase()}`;
 }
 
 async function audit(
@@ -160,6 +187,89 @@ export async function saveBank(formData: FormData) {
     connection.release();
   }
   revalidatePath("/admin/banks");
+}
+
+export async function createReferralLink(formData: FormData) {
+  const admin = await requireAdmin();
+  const parsed = referralLinkSchema.parse({
+    ownerUserId: value(formData, "ownerUserId"),
+    code: value(formData, "code"),
+    label: value(formData, "label"),
+    isActive: formData.has("isActive")
+  });
+
+  const connection = await pool.getConnection();
+  try {
+    await connection.beginTransaction();
+    const [ownerRows] = await connection.execute(
+      "select id, username from users where id = ? and status = 'active' limit 1",
+      [parsed.ownerUserId]
+    );
+    const owner = (ownerRows as Array<{ id: number; username: string }>)[0];
+    if (!owner) throw new Error("Affiliator tidak aktif atau tidak ditemukan");
+
+    let code = normalizeReferralCode(parsed.code || "");
+    for (let attempt = 0; attempt < 6; attempt += 1) {
+      if (!code) code = makeReferralLinkCode();
+
+      const [existingRows] = await connection.execute(
+        `select code from referral_links where code = ?
+         union all
+         select referral_code as code from users where referral_code = ?
+         limit 1`,
+        [code, code]
+      );
+      if ((existingRows as unknown[]).length === 0) break;
+      if (parsed.code) throw new Error("Kode referral sudah digunakan");
+      code = "";
+    }
+
+    if (!code) throw new Error("Gagal membuat kode referral unik");
+
+    const [result] = await connection.execute(
+      `insert into referral_links (code, owner_user_id, label, status, created_by)
+       values (?, ?, ?, ?, ?)`,
+      [code, parsed.ownerUserId, parsed.label || null, parsed.isActive ? "active" : "disabled", admin.id || null]
+    );
+    const referralLinkId = Number((result as { insertId: number }).insertId);
+    await audit(connection, admin.id, "referral_link.create", "referral_link", referralLinkId, {
+      code,
+      ownerUserId: parsed.ownerUserId,
+      ownerUsername: owner.username,
+      status: parsed.isActive ? "active" : "disabled"
+    });
+    await connection.commit();
+  } catch (error) {
+    await connection.rollback();
+    throw error;
+  } finally {
+    connection.release();
+  }
+  revalidatePath("/admin/referrals");
+}
+
+export async function updateReferralLinkStatus(formData: FormData) {
+  const admin = await requireAdmin();
+  const parsed = referralLinkStatusSchema.parse({
+    referralLinkId: value(formData, "referralLinkId"),
+    status: value(formData, "status")
+  });
+
+  const connection = await pool.getConnection();
+  try {
+    await connection.beginTransaction();
+    await connection.execute("update referral_links set status = ? where id = ?", [parsed.status, parsed.referralLinkId]);
+    await audit(connection, admin.id, "referral_link.status.update", "referral_link", parsed.referralLinkId, {
+      status: parsed.status
+    });
+    await connection.commit();
+  } catch (error) {
+    await connection.rollback();
+    throw error;
+  } finally {
+    connection.release();
+  }
+  revalidatePath("/admin/referrals");
 }
 
 export async function reviewDeposit(formData: FormData) {

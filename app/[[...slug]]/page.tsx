@@ -167,14 +167,25 @@ export default async function PublicRoute({ params, searchParams }: PageProps) {
 
   if (staticPageKey) {
     const paymentProviders = staticPageKey === "register" ? await getActivePaymentProviders() : undefined;
+    const referralCode = staticPageKey === "register" ? firstParam(query.ref) ?? firstParam(query.referralCode) : undefined;
 
     return (
       <>
         <div className="static-page-mobile-render">
-          <MobileStaticPageSnapshot pageKey={staticPageKey} user={user} paymentProviders={paymentProviders} />
+          <MobileStaticPageSnapshot
+            pageKey={staticPageKey}
+            user={user}
+            paymentProviders={paymentProviders}
+            referralCode={referralCode}
+          />
         </div>
         <div className="static-page-desktop-render">
-          <DesktopStaticPageSnapshot pageKey={staticPageKey} user={user} paymentProviders={paymentProviders} />
+          <DesktopStaticPageSnapshot
+            pageKey={staticPageKey}
+            user={user}
+            paymentProviders={paymentProviders}
+            referralCode={referralCode}
+          />
         </div>
       </>
     );
@@ -235,7 +246,7 @@ export default async function PublicRoute({ params, searchParams }: PageProps) {
 
   return (
     <AppShell activePath={path} user={user}>
-      {routeKind === "register" ? <RegisterPage /> : null}
+      {routeKind === "register" ? <RegisterPage referralCode={firstParam(query.ref) ?? firstParam(query.referralCode)} /> : null}
       {routeKind === "promotions" ? <PromotionsPage category={page.category} /> : null}
       {routeKind === "catalog" ? <CatalogPage page={page} /> : null}
     </AppShell>

@@ -5,6 +5,8 @@ create table if not exists users (
   phone varchar(32) null,
   password_hash varchar(255) not null,
   referral_code varchar(32) not null,
+  referrer_user_id bigint unsigned null,
+  referral_link_id bigint unsigned null,
   status enum('active', 'locked', 'suspended') not null default 'active',
   locale varchar(8) not null default 'id',
   created_at timestamp not null default current_timestamp,
@@ -12,6 +14,26 @@ create table if not exists users (
   unique key users_username_unique (username),
   unique key users_referral_code_unique (referral_code),
   unique key users_email_unique (email)
+);
+
+alter table users
+  add column referrer_user_id bigint unsigned null after referral_code;
+
+alter table users
+  add column referral_link_id bigint unsigned null after referrer_user_id;
+
+create table if not exists referral_links (
+  id bigint unsigned not null auto_increment primary key,
+  code varchar(32) not null,
+  owner_user_id bigint unsigned not null,
+  label varchar(160) null,
+  status enum('active', 'disabled') not null default 'active',
+  created_by bigint unsigned null,
+  created_at timestamp not null default current_timestamp,
+  updated_at timestamp not null default current_timestamp on update current_timestamp,
+  unique key referral_links_code_unique (code),
+  key referral_links_owner_idx (owner_user_id),
+  key referral_links_status_idx (status)
 );
 
 create table if not exists banks (

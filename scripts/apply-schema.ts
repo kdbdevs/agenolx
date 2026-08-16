@@ -17,7 +17,7 @@ async function main() {
       try {
         await connection.query(statement);
       } catch (error) {
-        if ((error as { code?: string }).code !== "ER_DUP_FIELDNAME") {
+        if (!["ER_DUP_FIELDNAME", "ER_DUP_KEYNAME"].includes((error as { code?: string }).code ?? "")) {
           throw error;
         }
       }

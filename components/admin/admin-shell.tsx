@@ -5,6 +5,7 @@ import type { AdminSession } from "@/lib/admin-auth";
 const navItems = [
   { href: "/admin", label: "Dashboard", icon: "▦" },
   { href: "/admin/users", label: "Users", icon: "◉" },
+  { href: "/admin/referrals", label: "Referral", icon: "⌁" },
   { href: "/admin/banks", label: "Banks", icon: "▤" },
   { href: "/admin/deposits", label: "Deposits", icon: "↧" },
   { href: "/admin/withdrawals", label: "Withdrawals", icon: "↥" }

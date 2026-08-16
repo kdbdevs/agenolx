@@ -143,7 +143,7 @@ export function HomePage() {
   );
 }
 
-export function RegisterPage() {
+export function RegisterPage({ referralCode }: { referralCode?: string }) {
   return (
     <section className="register register--d rebuild-register">
       <header className="page-header">
@@ -160,7 +160,7 @@ export function RegisterPage() {
               Password wajib memiliki minimal 8 karakter, dan wajib memiliki minimal 1 huruf dan 1 angka. Karakter
               spesial yang diperbolehkan adalah ! @ # $ % ^ * _ | , .
             </p>
-            <Field label="Kode Referral" name="referralCode" />
+            <Field label="Kode Referral" name="referralCode" defaultValue={referralCode} />
           </fieldset>
           <fieldset className="rebuild-fieldset">
             <h3>Informasi Pribadi</h3>
@@ -668,7 +668,19 @@ function HomeSectionHeader({ title, href, icon }: { title: string; href: string;
   );
 }
 
-function Field({ label, name, type = "text", prefix }: { label: string; name: string; type?: string; prefix?: string }) {
+function Field({
+  label,
+  name,
+  type = "text",
+  prefix,
+  defaultValue
+}: {
+  label: string;
+  name: string;
+  type?: string;
+  prefix?: string;
+  defaultValue?: string;
+}) {
   return (
     <div className="input__container rebuild-field">
       <label>{label}</label>
@@ -678,7 +690,7 @@ function Field({ label, name, type = "text", prefix }: { label: string; name: st
             {prefix}
           </span>
         ) : null}
-        <input name={name} type={type} autoComplete="off" />
+        <input name={name} type={type} autoComplete="off" defaultValue={defaultValue ?? ""} />
       </div>
     </div>
   );

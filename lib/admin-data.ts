@@ -6,6 +6,18 @@ export type AdminFilter = {
   status?: string;
 };
 
+export type ReferralAdminFilter = {
+  q?: string;
+  status?: string;
+  range?: "today" | "week" | "month" | "custom";
+  dateFrom: string;
+  dateTo: string;
+  affiliateSort: "username" | "downlines" | "links" | "approvedDeposits" | "createdAt";
+  affiliateDir: "asc" | "desc";
+  depositSort: "affiliate" | "downlines" | "depositCount" | "approvedAmount" | "pendingAmount" | "lastDeposit";
+  depositDir: "asc" | "desc";
+};
+
 type SqlParam = string | number | boolean | null;
 
 export type DashboardStats = {
@@ -76,6 +88,48 @@ export type AdminWithdrawalRow = {
   updatedAt: string;
 };
 
+export type ReferralLinkRow = {
+  id: number;
+  code: string;
+  label: string | null;
+  status: "active" | "disabled";
+  ownerUserId: number;
+  ownerUsername: string;
+  downlineCount: number;
+  approvedDepositAmount: number;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type AffiliateRow = {
+  id: number;
+  username: string;
+  referralCode: string;
+  status: "active" | "locked" | "suspended";
+  linkCount: number;
+  downlineCount: number;
+  approvedDepositAmount: number;
+  lastDownlineAt: string | null;
+  createdAt: string;
+};
+
+export type AffiliateDepositReportRow = {
+  id: number;
+  username: string;
+  referralCode: string;
+  downlineCount: number;
+  depositCount: number;
+  approvedDepositAmount: number;
+  pendingDepositAmount: number;
+  lastDepositAt: string | null;
+};
+
+export type ReferralUserOption = {
+  id: number;
+  username: string;
+  referralCode: string;
+};
+
 type CountRow = {
   users: number | string | null;
   active_users: number | string | null;
@@ -99,10 +153,74 @@ function text(value: string | string[] | undefined) {
   return Array.isArray(value) ? value[0] : value;
 }
 
+function isoDate(value: Date) {
+  return value.toISOString().slice(0, 10);
+}
+
+function parseDateInput(value: string | undefined) {
+  return value && /^\d{4}-\d{2}-\d{2}$/.test(value) ? value : undefined;
+}
+
+function defaultReferralDateRange(range: ReferralAdminFilter["range"] | undefined) {
+  const today = new Date();
+  if (range === "today") {
+    const date = isoDate(today);
+    return { dateFrom: date, dateTo: date };
+  }
+  if (range === "week") {
+    const weekAgo = new Date(today);
+    weekAgo.setDate(today.getDate() - 6);
+    return { dateFrom: isoDate(weekAgo), dateTo: isoDate(today) };
+  }
+  const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
+  return { dateFrom: isoDate(firstDay), dateTo: isoDate(today) };
+}
+
+function sortDir(value: string | undefined): "asc" | "desc" {
+  return value === "asc" ? "asc" : "desc";
+}
+
 export function parseAdminFilter(query: Record<string, string | string[] | undefined>): AdminFilter {
   return {
     q: text(query.q)?.trim() || undefined,
     status: text(query.status)?.trim() || undefined
+  };
+}
+
+export function parseReferralAdminFilter(query: Record<string, string | string[] | undefined>): ReferralAdminFilter {
+  const rangeValue = text(query.range);
+  const range = rangeValue === "today" || rangeValue === "week" || rangeValue === "month" || rangeValue === "custom"
+    ? rangeValue
+    : "month";
+  const defaults = defaultReferralDateRange(range);
+  const affiliateSortValue = text(query.affiliateSort);
+  const depositSortValue = text(query.depositSort);
+
+  return {
+    q: text(query.q)?.trim() || undefined,
+    status: text(query.status)?.trim() || undefined,
+    range,
+    dateFrom: parseDateInput(text(query.dateFrom)) ?? defaults.dateFrom,
+    dateTo: parseDateInput(text(query.dateTo)) ?? defaults.dateTo,
+    affiliateSort:
+      affiliateSortValue === "username" ||
+      affiliateSortValue === "downlines" ||
+      affiliateSortValue === "links" ||
+      affiliateSortValue === "approvedDeposits" ||
+      affiliateSortValue === "createdAt"
+        ? affiliateSortValue
+        : "approvedDeposits",
+    affiliateDir: sortDir(text(query.affiliateDir)),
+    depositSort:
+      depositSortValue === "affiliate" ||
+      depositSortValue === "downlines" ||
+      depositSortValue === "depositCount" ||
+      depositSortValue === "approvedAmount" ||
+      depositSortValue === "pendingAmount" ||
+      depositSortValue === "lastDeposit"
+        ? depositSortValue
+        : "approvedAmount",
+    depositDir: sortDir(text(query.depositDir))
   };
 }
 
@@ -300,4 +418,195 @@ export async function getWithdrawalUserOptions() {
      limit 200`
   );
   return rows as Array<{ id: number; username: string; bankAccountId: number | null; bankLabel: string | null }>;
+}
+
+export async function getReferralUserOptions() {
+  const [rows] = await pool.query(
+    `select id, username, referral_code as referralCode
+     from users
+     where status = 'active'
+     order by username
+     limit 500`
+  );
+  return rows as ReferralUserOption[];
+}
+
+export async function getReferralLinks(filter: ReferralAdminFilter) {
+  const where: string[] = [];
+  const params: SqlParam[] = [];
+  if (filter.status && ["active", "disabled"].includes(filter.status)) {
+    where.push("rl.status = ?");
+    params.push(filter.status);
+  }
+  if (filter.q) {
+    where.push("(rl.code like ? or rl.label like ? or u.username like ?)");
+    const like = `%${filter.q}%`;
+    params.push(like, like, like);
+  }
+
+  const [rows] = await pool.execute(
+    `select
+       rl.id,
+       rl.code,
+       rl.label,
+       rl.status,
+       rl.owner_user_id as ownerUserId,
+       u.username as ownerUsername,
+       count(distinct child.id) as downlineCount,
+       coalesce(sum(case when d.status = 'approved' then d.amount else 0 end), 0) as approvedDepositAmount,
+       rl.created_at as createdAt,
+       rl.updated_at as updatedAt
+     from referral_links rl
+     join users u on u.id = rl.owner_user_id
+     left join users child on child.referral_link_id = rl.id
+     left join deposits d on d.user_id = child.id
+     ${where.length ? `where ${where.join(" and ")}` : ""}
+     group by rl.id, rl.code, rl.label, rl.status, rl.owner_user_id, u.username, rl.created_at, rl.updated_at
+     order by rl.id desc
+     limit 200`,
+    params
+  );
+
+  return (rows as Array<
+    Omit<ReferralLinkRow, "downlineCount" | "approvedDepositAmount" | "createdAt" | "updatedAt"> & {
+      downlineCount: string | number;
+      approvedDepositAmount: string | number;
+      createdAt: string | Date;
+      updatedAt: string | Date;
+    }
+  >).map((row) => ({
+    ...row,
+    downlineCount: num(row.downlineCount),
+    approvedDepositAmount: num(row.approvedDepositAmount),
+    createdAt: dateValue(row.createdAt),
+    updatedAt: dateValue(row.updatedAt)
+  }));
+}
+
+export async function getAffiliateRows(filter: ReferralAdminFilter) {
+  const where: string[] = [];
+  const params: SqlParam[] = [];
+  if (filter.status && ["active", "locked", "suspended"].includes(filter.status)) {
+    where.push("u.status = ?");
+    params.push(filter.status);
+  }
+  if (filter.q) {
+    where.push("(u.username like ? or u.referral_code like ? or rl.code like ?)");
+    const like = `%${filter.q}%`;
+    params.push(like, like, like);
+  }
+
+  const sortMap = {
+    username: "u.username",
+    downlines: "downlineCount",
+    links: "linkCount",
+    approvedDeposits: "approvedDepositAmount",
+    createdAt: "u.created_at"
+  } satisfies Record<ReferralAdminFilter["affiliateSort"], string>;
+  const orderBy = `${sortMap[filter.affiliateSort]} ${filter.affiliateDir}`;
+
+  const [rows] = await pool.execute(
+    `select
+       u.id,
+       u.username,
+       u.referral_code as referralCode,
+       u.status,
+       count(distinct rl.id) as linkCount,
+       count(distinct child.id) as downlineCount,
+       coalesce(sum(case when d.status = 'approved' then d.amount else 0 end), 0) as approvedDepositAmount,
+       max(child.created_at) as lastDownlineAt,
+       u.created_at as createdAt
+     from users u
+     left join referral_links rl on rl.owner_user_id = u.id
+     left join users child on child.referrer_user_id = u.id
+     left join deposits d on d.user_id = child.id
+     ${where.length ? `where ${where.join(" and ")}` : ""}
+     group by u.id, u.username, u.referral_code, u.status, u.created_at
+     order by ${orderBy}, u.id desc
+     limit 300`,
+    params
+  );
+
+  return (rows as Array<
+    Omit<AffiliateRow, "linkCount" | "downlineCount" | "approvedDepositAmount" | "lastDownlineAt" | "createdAt"> & {
+      linkCount: string | number;
+      downlineCount: string | number;
+      approvedDepositAmount: string | number;
+      lastDownlineAt: string | Date | null;
+      createdAt: string | Date;
+    }
+  >).map((row) => ({
+    ...row,
+    linkCount: num(row.linkCount),
+    downlineCount: num(row.downlineCount),
+    approvedDepositAmount: num(row.approvedDepositAmount),
+    lastDownlineAt: row.lastDownlineAt ? dateValue(row.lastDownlineAt) : null,
+    createdAt: dateValue(row.createdAt)
+  }));
+}
+
+export async function getAffiliateDepositReportRows(filter: ReferralAdminFilter) {
+  const where: string[] = [];
+  const params: SqlParam[] = [filter.dateFrom, filter.dateTo];
+  if (filter.status && ["active", "locked", "suspended"].includes(filter.status)) {
+    where.push("u.status = ?");
+    params.push(filter.status);
+  }
+  if (filter.q) {
+    where.push("(u.username like ? or u.referral_code like ?)");
+    const like = `%${filter.q}%`;
+    params.push(like, like);
+  }
+
+  const sortMap = {
+    affiliate: "u.username",
+    downlines: "downlineCount",
+    depositCount: "depositCount",
+    approvedAmount: "approvedDepositAmount",
+    pendingAmount: "pendingDepositAmount",
+    lastDeposit: "lastDepositAt"
+  } satisfies Record<ReferralAdminFilter["depositSort"], string>;
+  const orderBy = `${sortMap[filter.depositSort]} ${filter.depositDir}`;
+
+  const [rows] = await pool.execute(
+    `select
+       u.id,
+       u.username,
+       u.referral_code as referralCode,
+       count(distinct child.id) as downlineCount,
+       count(distinct d.id) as depositCount,
+       coalesce(sum(case when d.status = 'approved' then d.amount else 0 end), 0) as approvedDepositAmount,
+       coalesce(sum(case when d.status = 'pending' then d.amount else 0 end), 0) as pendingDepositAmount,
+       max(d.created_at) as lastDepositAt
+     from users u
+     left join users child on child.referrer_user_id = u.id
+     left join deposits d on d.user_id = child.id
+       and d.created_at >= ?
+       and d.created_at < date_add(?, interval 1 day)
+     ${where.length ? `where ${where.join(" and ")}` : ""}
+     group by u.id, u.username, u.referral_code
+     order by ${orderBy}, u.id desc
+     limit 300`,
+    params
+  );
+
+  return (rows as Array<
+    Omit<
+      AffiliateDepositReportRow,
+      "downlineCount" | "depositCount" | "approvedDepositAmount" | "pendingDepositAmount" | "lastDepositAt"
+    > & {
+      downlineCount: string | number;
+      depositCount: string | number;
+      approvedDepositAmount: string | number;
+      pendingDepositAmount: string | number;
+      lastDepositAt: string | Date | null;
+    }
+  >).map((row) => ({
+    ...row,
+    downlineCount: num(row.downlineCount),
+    depositCount: num(row.depositCount),
+    approvedDepositAmount: num(row.approvedDepositAmount),
+    pendingDepositAmount: num(row.pendingDepositAmount),
+    lastDepositAt: row.lastDepositAt ? dateValue(row.lastDepositAt) : null
+  }));
 }
