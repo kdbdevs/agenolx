@@ -6020,8 +6020,13 @@ i[data-v-36ca62b1]{margin-right:.5rem}
   position: relative;
 }
 
-.rebuild-page .preset-amounts__item label {
+.rebuild-page .preset-amounts__item label,
+.rebuild-page .preset-amounts__item button {
   width: 100%;
+}
+
+.rebuild-page .preset-amounts__item--active button {
+  background-color: #139c44;
 }
 
 @media (min-width: 1024px) {

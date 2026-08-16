@@ -12,6 +12,7 @@ import {
   slotGames,
   slotProviders
 } from "@/lib/content";
+import { DepositAmountPicker } from "@/components/deposit-amount-picker";
 import type { DepositPaymentTarget } from "@/lib/payment-providers";
 
 export function HomePage() {
@@ -306,46 +307,7 @@ export function DepositPage({
                 : "Rekening tujuan deposit belum tersedia."}
             </p>
           </div>
-          <div className="preset-amounts">
-            <div className="preset-amounts__label">
-              <span>Pilih nominal</span>
-              <button type="button" className="btn btn--sm-round btn--brand">
-                <i className="icon-gear icon--md" />
-              </button>
-            </div>
-            <div className="preset-amounts__body">
-              {amountOptions.map((amount, index) => (
-                <div className="preset-amounts__item" key={amount}>
-                  <label role="button" htmlFor={`amount-${amount}`} className="btn btn--flex btn--light">
-                    {new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", maximumFractionDigits: 0 }).format(amount)}
-                  </label>
-                  <input
-                    id={`amount-${amount}`}
-                    className="preset-amounts__input"
-                    type="radio"
-                    name="amount"
-                    value={amount}
-                    defaultChecked={index === 0}
-                  />
-                </div>
-              ))}
-            </div>
-          </div>
-          <div className="input__container">
-            <label>Jumlah</label>
-            <div className="input__root">
-              <input type="number" className="input input--hidden" name="amountRaw" defaultValue={amountOptions[0]} readOnly />
-              <input
-                type="text"
-                className="input"
-                defaultValue={new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", maximumFractionDigits: 0 }).format(
-                  amountOptions[0]
-                )}
-                readOnly
-              />
-              <i className="input__icon icon-coins icon--xs" />
-            </div>
-          </div>
+          <DepositAmountPicker amounts={amountOptions} />
           {!isQris ? (
             <div className="input__container input__textarea">
               <label>Catatan</label>
