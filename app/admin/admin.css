@@ -386,7 +386,8 @@
   margin-bottom: 18px;
 }
 
-.admin-referral-tabs a {
+.admin-referral-tabs a,
+.admin-referral-tabs__item {
   display: inline-flex;
   align-items: center;
   min-height: 36px;
@@ -397,6 +398,13 @@
   color: #344054;
   font-size: 0.84rem;
   font-weight: 800;
+}
+
+.admin-referral-tabs__item--active,
+.admin-referral-tabs a:hover {
+  border-color: #abefc6;
+  background: #ecfdf3;
+  color: #087443;
 }
 
 .admin-referral-form {
@@ -423,6 +431,20 @@
   white-space: nowrap;
   font-size: 0.78rem;
   font-weight: 700;
+}
+
+.admin-row-link {
+  display: inline-flex;
+  flex-direction: column;
+  gap: 2px;
+  color: #087443;
+  font-weight: 800;
+}
+
+.admin-row-link:hover {
+  color: #065f46;
+  text-decoration: underline;
+  text-underline-offset: 3px;
 }
 
 .admin-form-grid--three {

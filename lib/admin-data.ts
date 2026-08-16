@@ -124,6 +124,37 @@ export type AffiliateDepositReportRow = {
   lastDepositAt: string | null;
 };
 
+export type AffiliateDepositDetail = {
+  affiliate: {
+    id: number;
+    username: string;
+    referralCode: string;
+    status: "active" | "locked" | "suspended";
+    createdAt: string;
+  } | null;
+  rows: AffiliateDownlineDepositRow[];
+  totals: {
+    downlines: number;
+    deposits: number;
+    approvedAmount: number;
+    pendingAmount: number;
+  };
+};
+
+export type AffiliateDownlineDepositRow = {
+  downlineId: number;
+  downlineUsername: string;
+  downlineCreatedAt: string;
+  depositId: number | null;
+  reference: string | null;
+  method: "bank_transfer" | "qris" | "qris_automatic" | null;
+  amount: number;
+  status: "pending" | "approved" | "rejected" | "expired" | null;
+  bankName: string | null;
+  depositCreatedAt: string | null;
+  reviewedAt: string | null;
+};
+
 export type ReferralUserOption = {
   id: number;
   username: string;
@@ -609,4 +640,99 @@ export async function getAffiliateDepositReportRows(filter: ReferralAdminFilter)
     pendingDepositAmount: num(row.pendingDepositAmount),
     lastDepositAt: row.lastDepositAt ? dateValue(row.lastDepositAt) : null
   }));
+}
+
+export async function getAffiliateDepositDetail(
+  affiliateId: number,
+  filter: ReferralAdminFilter
+): Promise<AffiliateDepositDetail> {
+  const [affiliateRows] = await pool.execute(
+    `select id, username, referral_code as referralCode, status, created_at as createdAt
+     from users
+     where id = ?
+     limit 1`,
+    [affiliateId]
+  );
+  const affiliate = (affiliateRows as Array<{
+    id: number;
+    username: string;
+    referralCode: string;
+    status: "active" | "locked" | "suspended";
+    createdAt: string | Date;
+  }>)[0];
+
+  if (!affiliate) {
+    return {
+      affiliate: null,
+      rows: [],
+      totals: {
+        downlines: 0,
+        deposits: 0,
+        approvedAmount: 0,
+        pendingAmount: 0
+      }
+    };
+  }
+
+  const where: string[] = ["child.referrer_user_id = ?"];
+  const whereParams: SqlParam[] = [affiliateId];
+  if (filter.q) {
+    where.push("(child.username like ? or child.referral_code like ? or d.reference like ?)");
+    const like = `%${filter.q}%`;
+    whereParams.push(like, like, like);
+  }
+  const params: SqlParam[] = [filter.dateFrom, filter.dateTo, ...whereParams];
+
+  const [rows] = await pool.execute(
+    `select
+       child.id as downlineId,
+       child.username as downlineUsername,
+       child.created_at as downlineCreatedAt,
+       d.id as depositId,
+       d.reference,
+       d.method,
+       d.amount,
+       d.status,
+       b.name as bankName,
+       d.created_at as depositCreatedAt,
+       d.reviewed_at as reviewedAt
+     from users child
+     left join deposits d on d.user_id = child.id
+       and d.created_at >= ?
+       and d.created_at < date_add(?, interval 1 day)
+     left join banks b on b.id = d.bank_id
+     where ${where.join(" and ")}
+     order by child.created_at desc, d.created_at desc, child.id desc
+     limit 500`,
+    params
+  );
+
+  const mappedRows = (rows as Array<
+    Omit<AffiliateDownlineDepositRow, "amount" | "downlineCreatedAt" | "depositCreatedAt" | "reviewedAt"> & {
+      amount: string | number | null;
+      downlineCreatedAt: string | Date;
+      depositCreatedAt: string | Date | null;
+      reviewedAt: string | Date | null;
+    }
+  >).map((row) => ({
+    ...row,
+    amount: num(row.amount),
+    downlineCreatedAt: dateValue(row.downlineCreatedAt),
+    depositCreatedAt: row.depositCreatedAt ? dateValue(row.depositCreatedAt) : null,
+    reviewedAt: row.reviewedAt ? dateValue(row.reviewedAt) : null
+  }));
+
+  return {
+    affiliate: {
+      ...affiliate,
+      createdAt: dateValue(affiliate.createdAt)
+    },
+    rows: mappedRows,
+    totals: {
+      downlines: new Set(mappedRows.map((row) => row.downlineId)).size,
+      deposits: mappedRows.filter((row) => row.depositId).length,
+      approvedAmount: mappedRows.reduce((total, row) => total + (row.status === "approved" ? row.amount : 0), 0),
+      pendingAmount: mappedRows.reduce((total, row) => total + (row.status === "pending" ? row.amount : 0), 0)
+    }
+  };
 }
