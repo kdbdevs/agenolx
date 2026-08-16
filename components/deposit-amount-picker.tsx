@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 
 type DepositAmountPickerProps = {
   amounts: number[];
+  disabled?: boolean;
 };
 
 function formatIdr(amount: number) {
@@ -14,7 +15,7 @@ function formatIdr(amount: number) {
   }).format(amount);
 }
 
-export function DepositAmountPicker({ amounts }: DepositAmountPickerProps) {
+export function DepositAmountPicker({ amounts, disabled = false }: DepositAmountPickerProps) {
   const [selectedAmount, setSelectedAmount] = useState(amounts[0] ?? 50000);
   const formattedAmount = useMemo(() => formatIdr(selectedAmount), [selectedAmount]);
 
@@ -36,6 +37,7 @@ export function DepositAmountPicker({ amounts }: DepositAmountPickerProps) {
                   type="button"
                   className="btn btn--flex btn--light"
                   aria-pressed={isSelected}
+                  disabled={disabled}
                   onClick={() => setSelectedAmount(amount)}
                 >
                   {formatIdr(amount)}
@@ -49,7 +51,7 @@ export function DepositAmountPicker({ amounts }: DepositAmountPickerProps) {
         <label>Jumlah</label>
         <div className="input__root">
           <input type="hidden" name="amount" value={selectedAmount} />
-          <input type="text" className="input" value={formattedAmount} readOnly />
+          <input type="text" className="input" value={formattedAmount} readOnly disabled={disabled} />
           <i className="input__icon icon-coins icon--xs" />
         </div>
       </div>

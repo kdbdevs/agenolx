@@ -6029,6 +6029,24 @@ i[data-v-36ca62b1]{margin-right:.5rem}
   background-color: #139c44;
 }
 
+.rebuild-page .wallet-pending-deposit {
+  align-items: flex-start;
+}
+
+.rebuild-page .wallet-pending-deposit strong,
+.rebuild-page .wallet-pending-deposit p {
+  display: block;
+}
+
+.rebuild-page .wallet-pending-deposit strong {
+  margin-bottom: 0.25rem;
+  font-size: 0.875rem;
+}
+
+.rebuild-page .wallet-pending-deposit p + p {
+  margin-top: 0.25rem;
+}
+
 @media (min-width: 1024px) {
   .rebuild-page .deposit--d {
     display: grid;

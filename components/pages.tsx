@@ -13,6 +13,7 @@ import {
   slotProviders
 } from "@/lib/content";
 import { DepositAmountPicker } from "@/components/deposit-amount-picker";
+import type { PendingDeposit } from "@/lib/deposits";
 import type { DepositPaymentTarget } from "@/lib/payment-providers";
 
 export function HomePage() {
@@ -215,11 +216,13 @@ export function LoginPage() {
 export function DepositPage({
   method,
   targets,
+  pendingDeposit,
   success,
   error
 }: {
   method: "bank_transfer" | "qris";
   targets: DepositPaymentTarget[];
+  pendingDeposit?: PendingDeposit | null;
   success?: string;
   error?: string;
 }) {
@@ -228,6 +231,8 @@ export function DepositPage({
   const readyTargets = isQris
     ? targets
     : targets.filter((target) => target.depositAccountName && target.depositAccountNumber);
+  const hasPendingDeposit = Boolean(pendingDeposit);
+  const formDisabled = readyTargets.length === 0 || hasPendingDeposit;
 
   return (
     <section className="deposit deposit--d">
@@ -266,6 +271,19 @@ export function DepositPage({
               <p>{error}</p>
             </div>
           ) : null}
+          {pendingDeposit ? (
+            <div className="alert alert--warning wallet-pending-deposit">
+              <i className="icon-info icon--lg" />
+              <div>
+                <strong>Deposit masih dalam proses</strong>
+                <p>
+                  Deposit {pendingDeposit.reference ?? `#${pendingDeposit.id}`} sebesar {pendingDeposit.amountFormatted}
+                  {pendingDeposit.bankName ? ` melalui ${pendingDeposit.bankName}` : ""} sedang menunggu proses admin.
+                </p>
+                <p>Anda belum bisa membuat deposit baru sampai deposit ini disetujui, ditolak, atau kedaluwarsa.</p>
+              </div>
+            </div>
+          ) : null}
           <div className="bank-select bank-select--d">
             <span className="bank-select__label">Pilih Bank</span>
             <div className="bank-select__body">
@@ -281,6 +299,7 @@ export function DepositPage({
                     name="bankId"
                     value={bank.id}
                     defaultChecked={index === 0}
+                    disabled={formDisabled}
                   />
                   <i className="bank-select__icon icon-circle icon--xs" />
                 </div>
@@ -307,18 +326,18 @@ export function DepositPage({
                 : "Rekening tujuan deposit belum tersedia."}
             </p>
           </div>
-          <DepositAmountPicker amounts={amountOptions} />
+          <DepositAmountPicker amounts={amountOptions} disabled={formDisabled} />
           {!isQris ? (
             <div className="input__container input__textarea">
               <label>Catatan</label>
               <div className="input__root">
-                <textarea name="note" className="input" rows={1} placeholder="Catatan" />
+                <textarea name="note" className="input" rows={1} placeholder="Catatan" disabled={formDisabled} />
                 <i className="input__icon icon-pen icon--xs" />
               </div>
             </div>
           ) : null}
-          <button type="submit" className="btn btn--block btn--success" disabled={readyTargets.length === 0}>
-            <span>Kirim</span>
+          <button type="submit" className="btn btn--block btn--success" disabled={formDisabled}>
+            <span>{hasPendingDeposit ? "Deposit Sedang Diproses" : "Kirim"}</span>
           </button>
         </form>
       </div>
