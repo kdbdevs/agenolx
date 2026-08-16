@@ -23,26 +23,25 @@ export default async function AdminBanksPage({ searchParams }: PageProps) {
       <div className="admin-grid" style={{ gap: "18px" }}>
         <AdminCard title="Tambah Bank / E-money">
           <form className="admin-form-grid admin-form-grid--four admin-bank-form" action={saveBank}>
-            <div className="admin-field">
+            <div className="admin-field admin-bank-form__code">
               <label>Kode</label>
               <input name="code" placeholder="BCA / 54" required />
             </div>
-            <div className="admin-field">
+            <div className="admin-field admin-bank-form__name">
               <label>Nama</label>
               <input name="name" placeholder="BCA" required />
             </div>
-            <div className="admin-field">
+            <div className="admin-field admin-bank-form__type">
               <label>Tipe</label>
               <select name="type" defaultValue="bank">
                 <option value="bank">Bank</option>
                 <option value="e_money">E-money</option>
               </select>
             </div>
-            <label className="admin-checkbox">
+            <label className="admin-checkbox admin-bank-form__status">
               <input type="checkbox" name="isActive" defaultChecked />
               Aktif
             </label>
-            <button className="admin-button" type="submit">Tambah</button>
             <div className="admin-field admin-bank-form__logo">
               <label>Logo URL</label>
               <input name="logoUrl" placeholder="Opsional" />
@@ -55,6 +54,7 @@ export default async function AdminBanksPage({ searchParams }: PageProps) {
               <label>Nomor Rekening Deposit</label>
               <input name="depositAccountNumber" placeholder="Opsional" />
             </div>
+            <button className="admin-button admin-bank-form__action" type="submit">Tambah</button>
           </form>
         </AdminCard>
 
@@ -100,26 +100,25 @@ export default async function AdminBanksPage({ searchParams }: PageProps) {
                     <td>
                       <form className="admin-form-grid admin-form-grid--four admin-bank-form" action={saveBank} style={{ padding: 0 }}>
                         <input type="hidden" name="bankId" value={bank.id} />
-                        <div className="admin-field">
+                        <div className="admin-field admin-bank-form__code">
                           <label>Kode</label>
                           <input name="code" defaultValue={bank.code} required />
                         </div>
-                        <div className="admin-field">
+                        <div className="admin-field admin-bank-form__name">
                           <label>Nama</label>
                           <input name="name" defaultValue={bank.name} required />
                         </div>
-                        <div className="admin-field">
+                        <div className="admin-field admin-bank-form__type">
                           <label>Tipe</label>
                           <select name="type" defaultValue={bank.type}>
                             <option value="bank">Bank</option>
                             <option value="e_money">E-money</option>
                           </select>
                         </div>
-                        <label className="admin-checkbox">
+                        <label className="admin-checkbox admin-bank-form__status">
                           <input type="checkbox" name="isActive" defaultChecked={bank.isActive} />
                           Aktif
                         </label>
-                        <button className="admin-button admin-button--dark" type="submit">Simpan</button>
                         <div className="admin-field admin-bank-form__logo">
                           <label>Logo URL</label>
                           <input name="logoUrl" defaultValue={bank.logoUrl ?? ""} />
@@ -132,6 +131,7 @@ export default async function AdminBanksPage({ searchParams }: PageProps) {
                           <label>Nomor Rekening Deposit</label>
                           <input name="depositAccountNumber" defaultValue={bank.depositAccountNumber ?? ""} />
                         </div>
+                        <button className="admin-button admin-button--dark admin-bank-form__action" type="submit">Simpan</button>
                       </form>
                     </td>
                   </tr>
