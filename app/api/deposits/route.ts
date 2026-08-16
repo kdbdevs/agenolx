@@ -12,6 +12,8 @@ const depositSchema = z.object({
   note: z.string().trim().max(500).optional()
 });
 
+const RECOMMENDED_DEPOSIT_BANK = "MANDIRI";
+
 function field(formData: FormData, name: string) {
   const value = formData.get(name);
   return typeof value === "string" ? value : "";
@@ -69,15 +71,38 @@ export async function POST(request: NextRequest) {
       }
 
       const [bankRows] = await connection.execute(
-        `select id
+        `select id, name, deposit_account_name as depositAccountName,
+           deposit_account_number as depositAccountNumber
          from banks
          where id = ? and type = 'bank' and is_active = true
-           and deposit_account_name is not null and deposit_account_name <> ''
-           and deposit_account_number is not null and deposit_account_number <> ''
          limit 1`,
         [parsed.data.bankId]
       );
-      bankId = Number((bankRows as Array<{ id: number }>)[0]?.id) || null;
+      const bank = (bankRows as Array<{
+        id: number;
+        name: string;
+        depositAccountName: string | null;
+        depositAccountNumber: string | null;
+      }>)[0];
+
+      if (!bank) {
+        return redirectWithStatus(request, returnPath, "error", "Bank tujuan deposit tidak aktif");
+      }
+
+      if (!bank.name.toLocaleLowerCase("id-ID").includes(RECOMMENDED_DEPOSIT_BANK.toLocaleLowerCase("id-ID"))) {
+        return redirectWithStatus(
+          request,
+          returnPath,
+          "error",
+          `${bank.name} sedang gangguan. Silahkan gunakan ${RECOMMENDED_DEPOSIT_BANK} untuk deposit saat ini.`
+        );
+      }
+
+      if (!bank.depositAccountName || !bank.depositAccountNumber) {
+        return redirectWithStatus(request, returnPath, "error", "Rekening MANDIRI belum tersedia. Silahkan hubungi admin.");
+      }
+
+      bankId = Number(bank.id) || null;
       if (!bankId) {
         return redirectWithStatus(request, returnPath, "error", "Rekening tujuan deposit belum tersedia");
       }

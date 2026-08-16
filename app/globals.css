@@ -5961,6 +5961,10 @@ i[data-v-36ca62b1]{margin-right:.5rem}
   color: #139c44;
 }
 
+.rebuild-page .bank-select__item--recommended {
+  border: 1px solid #dfbb06;
+}
+
 .rebuild-page .bank-select label {
   display: flex;
   align-items: center;
@@ -6047,6 +6051,10 @@ i[data-v-36ca62b1]{margin-right:.5rem}
   margin-top: 0.25rem;
 }
 
+.rebuild-page .wallet-bank-recommendation {
+  align-items: flex-start;
+}
+
 @media (min-width: 1024px) {
   .rebuild-page .deposit--d {
     display: grid;
@@ -6085,6 +6093,7 @@ i[data-v-36ca62b1]{margin-right:.5rem}
   .rebuild-page .deposit--d .wallet-form--d .bank-select,
   .rebuild-page .deposit--d .wallet-form--d .input__container,
   .rebuild-page .deposit--d .wallet-form--d .preset-amounts,
+  .rebuild-page .deposit--d .wallet-form--d .wallet-detail__deposit-to,
   .rebuild-page .deposit--d .wallet-form--d button[type=submit] {
     grid-column: 1 / 3;
   }
@@ -6136,6 +6145,7 @@ i[data-v-36ca62b1]{margin-right:.5rem}
   .rebuild-page .deposit .wallet-form--d .bank-select,
   .rebuild-page .deposit .wallet-form--d .input__container,
   .rebuild-page .deposit .wallet-form--d .preset-amounts,
+  .rebuild-page .deposit .wallet-form--d .wallet-detail__deposit-to,
   .rebuild-page .deposit .wallet-form--d button[type=submit] {
     grid-column: 1 / -1;
   }

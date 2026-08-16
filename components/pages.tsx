@@ -13,6 +13,7 @@ import {
   slotProviders
 } from "@/lib/content";
 import { DepositAmountPicker } from "@/components/deposit-amount-picker";
+import { DepositBankSelector } from "@/components/deposit-bank-selector";
 import type { PendingDeposit } from "@/lib/deposits";
 import type { DepositPaymentTarget } from "@/lib/payment-providers";
 
@@ -228,10 +229,14 @@ export function DepositPage({
 }) {
   const isQris = method === "qris";
   const amountOptions = [50000, 100000, 200000, 500000];
-  const readyTargets = isQris
-    ? targets
-    : targets.filter((target) => target.depositAccountName && target.depositAccountNumber);
-  const formDisabled = readyTargets.length === 0;
+  const recommendedBankName = "MANDIRI";
+  const mandiriTarget = targets.find((target) =>
+    target.name.toLocaleLowerCase("id-ID").includes(recommendedBankName.toLocaleLowerCase("id-ID"))
+  );
+  const recommendedTarget = isQris ? targets[0] : mandiriTarget;
+  const formDisabled = isQris
+    ? targets.length === 0
+    : !recommendedTarget?.depositAccountName || !recommendedTarget.depositAccountNumber;
 
   return (
     <section className="deposit deposit--d">
@@ -284,46 +289,22 @@ export function DepositPage({
             </div>
           ) : (
             <>
-              <div className="bank-select bank-select--d">
-                <span className="bank-select__label">Pilih Bank</span>
-                <div className="bank-select__body">
-                  {readyTargets.map((bank, index) => (
-                    <div className="bank-select__item" key={bank.code}>
-                      <label role="button" htmlFor={`deposit-target-${bank.code}`}>
-                        {bank.logoUrl ? <img src={bank.logoUrl} alt={bank.name} /> : <span>{bank.name}</span>}
-                      </label>
-                      <input
-                        id={`deposit-target-${bank.code}`}
-                        className="bank-select__input"
-                        type="radio"
-                        name="bankId"
-                        value={bank.id}
-                        defaultChecked={index === 0}
-                        disabled={formDisabled}
-                      />
-                      <i className="bank-select__icon icon-circle icon--xs" />
-                    </div>
-                  ))}
-                </div>
-              </div>
-              {readyTargets.length > 0 && !isQris ? (
-                <div className="wallet-detail wallet-detail__deposit-to">
-                  <span>Tujuan Deposit</span>
-                  {readyTargets.map((target) => (
-                    <div key={`deposit-detail-${target.code}`}>
-                      <strong>{target.name}</strong>
-                      <p>{target.depositAccountName}</p>
-                      <p>{target.depositAccountNumber}</p>
-                    </div>
-                  ))}
-                </div>
-              ) : null}
-              <div className={`alert alert--${readyTargets.length ? "info" : "danger"}`}>
+              <DepositBankSelector
+                targets={targets}
+                inputName={isQris ? undefined : "bankId"}
+                recommendedBankName={isQris ? undefined : recommendedBankName}
+                disabled={formDisabled}
+              />
+              <div className={`alert alert--${formDisabled ? "danger" : "info"}`}>
                 <i className="icon-info icon--lg" />
                 <p>
-                  {readyTargets.length
-                    ? "Silahkan memilih salah satu Bank terlebih dahulu."
-                    : "Rekening tujuan deposit belum tersedia."}
+                  {formDisabled
+                    ? isQris
+                      ? "Metode QRIS belum tersedia."
+                      : "Rekening MANDIRI belum tersedia. Silahkan hubungi admin."
+                    : isQris
+                      ? "Silahkan lanjutkan deposit menggunakan QRIS."
+                      : "Silahkan menggunakan MANDIRI. Bank lain sedang gangguan sementara."}
                 </p>
               </div>
               <DepositAmountPicker amounts={amountOptions} disabled={formDisabled} />
