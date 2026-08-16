@@ -520,6 +520,7 @@ function wireRegisterSnapshotForm(html: string, paymentProviders: readonly Payme
   wiredForm = renameRegisterInput(wiredForm, /(<label>Masukkan kembali Password<\/label>[\s\S]*?<input\b)([^>]*)(>)/, "passwordConfirm");
   wiredForm = renameRegisterInput(wiredForm, /(<label>Kode Referral<\/label>[\s\S]*?<input\b)([^>]*)(>)/, "referralCode");
   wiredForm = setRegisterInputValue(wiredForm, "referralCode", referralCode);
+  wiredForm = lockRegisterReferralInput(wiredForm, referralCode);
   wiredForm = renameRegisterInput(wiredForm, /(<div\b[^>]*class="[^"]*\binput-fullname\b[^"]*"[\s\S]*?<input\b)([^>]*)(>)/, "fullName");
   wiredForm = renameRegisterInput(wiredForm, /(<label>E-mail<\/label>[\s\S]*?<input\b)([^>]*)(>)/, "email");
   wiredForm = renameRegisterInput(wiredForm, /(<div\b[^>]*class="[^"]*\binput-phone\b[^"]*"[\s\S]*?<input\b)([^>]*)(>)/, "phone");
@@ -544,6 +545,26 @@ function setRegisterInputValue(html: string, name: string, value?: string) {
     const nextAttributes = prefix.replace(/\svalue="[^"]*"/, "");
     return `${nextAttributes} value="${escapeAttribute(value)}"${suffix}`;
   });
+}
+
+function lockRegisterReferralInput(html: string, referralCode?: string) {
+  if (!referralCode) return html;
+
+  let output = html.replace(/(<input\b(?=[^>]*\sname="referralCode")[^>]*)(>)/, (_match, prefix: string, suffix: string) => {
+    const nextAttributes = prefix
+      .replace(/\sreadonly(?:="[^"]*")?/g, "")
+      .replace(/\saria-readonly="[^"]*"/g, "")
+      .replace(/\sdata-referral-locked="[^"]*"/g, "")
+      .replace(/\stitle="[^"]*"/g, "");
+    return `${nextAttributes} readonly="readonly" aria-readonly="true" data-referral-locked="true" title="Kode referral dari link affiliator"${suffix}`;
+  });
+
+  output = output.replace(
+    /(<label>Kode Referral<\/label>[\s\S]*?<div\b[^>]*class="[^"]*\binput__root\b[^"]*"[\s\S]*?<\/div>)/,
+    `$1<p class="input__error referral-lock-note">Kode referral dari link affiliator terkunci otomatis.</p>`
+  );
+
+  return output;
 }
 
 function renameRegisterInput(html: string, pattern: RegExp, name: string) {

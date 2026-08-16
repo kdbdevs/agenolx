@@ -1115,6 +1115,18 @@ body {
   font-family: inherit;
 }
 
+.input[data-referral-locked="true"],
+.rebuild-field input[data-referral-locked="true"] {
+  cursor: not-allowed;
+  color: hsla(0, 0%, 100%, 0.78);
+  border-color: rgba(223, 187, 6, 0.55);
+  background-color: rgba(51, 66, 57, 0.72);
+}
+
+.referral-lock-note {
+  color: rgba(223, 187, 6, 0.9);
+}
+
 .rebuild-help {
   color: hsla(0, 0%, 100%, 0.6);
   font-size: 0.75rem;

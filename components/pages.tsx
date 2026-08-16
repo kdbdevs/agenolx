@@ -160,7 +160,13 @@ export function RegisterPage({ referralCode }: { referralCode?: string }) {
               Password wajib memiliki minimal 8 karakter, dan wajib memiliki minimal 1 huruf dan 1 angka. Karakter
               spesial yang diperbolehkan adalah ! @ # $ % ^ * _ | , .
             </p>
-            <Field label="Kode Referral" name="referralCode" defaultValue={referralCode} />
+            <Field
+              label="Kode Referral"
+              name="referralCode"
+              defaultValue={referralCode}
+              readOnly={Boolean(referralCode)}
+              help={referralCode ? "Kode referral dari link affiliator terkunci otomatis." : undefined}
+            />
           </fieldset>
           <fieldset className="rebuild-fieldset">
             <h3>Informasi Pribadi</h3>
@@ -673,13 +679,17 @@ function Field({
   name,
   type = "text",
   prefix,
-  defaultValue
+  defaultValue,
+  readOnly = false,
+  help
 }: {
   label: string;
   name: string;
   type?: string;
   prefix?: string;
   defaultValue?: string;
+  readOnly?: boolean;
+  help?: string;
 }) {
   return (
     <div className="input__container rebuild-field">
@@ -690,8 +700,18 @@ function Field({
             {prefix}
           </span>
         ) : null}
-        <input name={name} type={type} autoComplete="off" defaultValue={defaultValue ?? ""} />
+        <input
+          name={name}
+          type={type}
+          autoComplete="off"
+          defaultValue={defaultValue ?? ""}
+          readOnly={readOnly}
+          aria-readonly={readOnly || undefined}
+          data-referral-locked={readOnly ? "true" : undefined}
+          title={readOnly ? "Kode referral dari link affiliator" : undefined}
+        />
       </div>
+      {help ? <p className="input__error referral-lock-note">{help}</p> : null}
     </div>
   );
 }
