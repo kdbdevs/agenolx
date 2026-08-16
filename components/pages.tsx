@@ -231,8 +231,7 @@ export function DepositPage({
   const readyTargets = isQris
     ? targets
     : targets.filter((target) => target.depositAccountName && target.depositAccountNumber);
-  const hasPendingDeposit = Boolean(pendingDeposit);
-  const formDisabled = readyTargets.length === 0 || hasPendingDeposit;
+  const formDisabled = readyTargets.length === 0;
 
   return (
     <section className="deposit deposit--d">
@@ -283,62 +282,65 @@ export function DepositPage({
                 <p>Anda belum bisa membuat deposit baru sampai deposit ini disetujui, ditolak, atau kedaluwarsa.</p>
               </div>
             </div>
-          ) : null}
-          <div className="bank-select bank-select--d">
-            <span className="bank-select__label">Pilih Bank</span>
-            <div className="bank-select__body">
-              {readyTargets.map((bank, index) => (
-                <div className="bank-select__item" key={bank.code}>
-                  <label role="button" htmlFor={`deposit-target-${bank.code}`}>
-                    {bank.logoUrl ? <img src={bank.logoUrl} alt={bank.name} /> : <span>{bank.name}</span>}
-                  </label>
-                  <input
-                    id={`deposit-target-${bank.code}`}
-                    className="bank-select__input"
-                    type="radio"
-                    name="bankId"
-                    value={bank.id}
-                    defaultChecked={index === 0}
-                    disabled={formDisabled}
-                  />
-                  <i className="bank-select__icon icon-circle icon--xs" />
+          ) : (
+            <>
+              <div className="bank-select bank-select--d">
+                <span className="bank-select__label">Pilih Bank</span>
+                <div className="bank-select__body">
+                  {readyTargets.map((bank, index) => (
+                    <div className="bank-select__item" key={bank.code}>
+                      <label role="button" htmlFor={`deposit-target-${bank.code}`}>
+                        {bank.logoUrl ? <img src={bank.logoUrl} alt={bank.name} /> : <span>{bank.name}</span>}
+                      </label>
+                      <input
+                        id={`deposit-target-${bank.code}`}
+                        className="bank-select__input"
+                        type="radio"
+                        name="bankId"
+                        value={bank.id}
+                        defaultChecked={index === 0}
+                        disabled={formDisabled}
+                      />
+                      <i className="bank-select__icon icon-circle icon--xs" />
+                    </div>
+                  ))}
                 </div>
-              ))}
-            </div>
-          </div>
-          {readyTargets.length > 0 && !isQris ? (
-            <div className="wallet-detail wallet-detail__deposit-to">
-              <span>Tujuan Deposit</span>
-              {readyTargets.map((target) => (
-                <div key={`deposit-detail-${target.code}`}>
-                  <strong>{target.name}</strong>
-                  <p>{target.depositAccountName}</p>
-                  <p>{target.depositAccountNumber}</p>
-                </div>
-              ))}
-            </div>
-          ) : null}
-          <div className={`alert alert--${readyTargets.length ? "info" : "danger"}`}>
-            <i className="icon-info icon--lg" />
-            <p>
-              {readyTargets.length
-                ? "Silahkan memilih salah satu Bank terlebih dahulu."
-                : "Rekening tujuan deposit belum tersedia."}
-            </p>
-          </div>
-          <DepositAmountPicker amounts={amountOptions} disabled={formDisabled} />
-          {!isQris ? (
-            <div className="input__container input__textarea">
-              <label>Catatan</label>
-              <div className="input__root">
-                <textarea name="note" className="input" rows={1} placeholder="Catatan" disabled={formDisabled} />
-                <i className="input__icon icon-pen icon--xs" />
               </div>
-            </div>
-          ) : null}
-          <button type="submit" className="btn btn--block btn--success" disabled={formDisabled}>
-            <span>{hasPendingDeposit ? "Deposit Sedang Diproses" : "Kirim"}</span>
-          </button>
+              {readyTargets.length > 0 && !isQris ? (
+                <div className="wallet-detail wallet-detail__deposit-to">
+                  <span>Tujuan Deposit</span>
+                  {readyTargets.map((target) => (
+                    <div key={`deposit-detail-${target.code}`}>
+                      <strong>{target.name}</strong>
+                      <p>{target.depositAccountName}</p>
+                      <p>{target.depositAccountNumber}</p>
+                    </div>
+                  ))}
+                </div>
+              ) : null}
+              <div className={`alert alert--${readyTargets.length ? "info" : "danger"}`}>
+                <i className="icon-info icon--lg" />
+                <p>
+                  {readyTargets.length
+                    ? "Silahkan memilih salah satu Bank terlebih dahulu."
+                    : "Rekening tujuan deposit belum tersedia."}
+                </p>
+              </div>
+              <DepositAmountPicker amounts={amountOptions} disabled={formDisabled} />
+              {!isQris ? (
+                <div className="input__container input__textarea">
+                  <label>Catatan</label>
+                  <div className="input__root">
+                    <textarea name="note" className="input" rows={1} placeholder="Catatan" disabled={formDisabled} />
+                    <i className="input__icon icon-pen icon--xs" />
+                  </div>
+                </div>
+              ) : null}
+              <button type="submit" className="btn btn--block btn--success" disabled={formDisabled}>
+                <span>Kirim</span>
+              </button>
+            </>
+          )}
         </form>
       </div>
     </section>
