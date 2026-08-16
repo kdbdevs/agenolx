@@ -7,7 +7,7 @@ import { redirectRelative, withSearchParam } from "@/lib/redirect";
 const depositSchema = z.object({
   method: z.enum(["bank_transfer", "qris"]),
   amount: z.coerce.number().int().min(50000, "Minimal deposit Rp 50.000").max(100000000, "Jumlah deposit terlalu besar"),
-  bankCode: z.string().trim().max(32).optional(),
+  bankId: z.coerce.number().int().positive().optional(),
   note: z.string().trim().max(500).optional()
 });
 
@@ -32,7 +32,7 @@ export async function POST(request: NextRequest) {
   const parsed = depositSchema.safeParse({
     method: field(formData, "method"),
     amount: field(formData, "amount"),
-    bankCode: field(formData, "bankCode"),
+    bankId: field(formData, "bankId") || undefined,
     note: field(formData, "note")
   });
 
@@ -44,11 +44,32 @@ export async function POST(request: NextRequest) {
   }
 
   const reference = `DEP-${Date.now()}-${Math.random().toString(36).slice(2, 8).toUpperCase()}`;
+  let bankId: number | null = null;
+
+  if (parsed.data.method === "bank_transfer") {
+    if (!parsed.data.bankId) {
+      return redirectWithStatus(request, returnPath, "error", "Bank tujuan deposit wajib dipilih");
+    }
+
+    const [bankRows] = await pool.execute(
+      `select id
+       from banks
+       where id = ? and type = 'bank' and is_active = true
+         and deposit_account_name is not null and deposit_account_name <> ''
+         and deposit_account_number is not null and deposit_account_number <> ''
+       limit 1`,
+      [parsed.data.bankId]
+    );
+    bankId = Number((bankRows as Array<{ id: number }>)[0]?.id) || null;
+    if (!bankId) {
+      return redirectWithStatus(request, returnPath, "error", "Rekening tujuan deposit belum tersedia");
+    }
+  }
 
   await pool.execute(
-    `insert into deposits (user_id, method, amount, status, reference)
-     values (?, ?, ?, 'pending', ?)`,
-    [session.userId, parsed.data.method, parsed.data.amount, reference]
+    `insert into deposits (user_id, method, bank_id, amount, status, reference, note)
+     values (?, ?, ?, ?, 'pending', ?, ?)`,
+    [session.userId, parsed.data.method, bankId, parsed.data.amount, reference, parsed.data.note || null]
   );
 
   return redirectWithStatus(request, returnPath, "success", `Deposit ${reference} berhasil dibuat dan menunggu proses`);

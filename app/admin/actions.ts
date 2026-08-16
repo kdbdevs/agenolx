@@ -16,6 +16,8 @@ const bankSchema = z.object({
   name: z.string().trim().min(2).max(120),
   type: z.enum(["bank", "e_money"]),
   logoUrl: z.string().trim().max(500).optional().or(z.literal("")),
+  depositAccountName: z.string().trim().max(160).optional().or(z.literal("")),
+  depositAccountNumber: z.string().trim().max(80).optional().or(z.literal("")),
   isActive: z.boolean()
 });
 
@@ -108,6 +110,8 @@ export async function saveBank(formData: FormData) {
     name: value(formData, "name"),
     type: value(formData, "type"),
     logoUrl: value(formData, "logoUrl"),
+    depositAccountName: value(formData, "depositAccountName"),
+    depositAccountNumber: value(formData, "depositAccountNumber"),
     isActive: formData.has("isActive")
   });
 
@@ -116,14 +120,35 @@ export async function saveBank(formData: FormData) {
     await connection.beginTransaction();
     if (parsed.bankId) {
       await connection.execute(
-        "update banks set code = ?, name = ?, type = ?, logo_url = ?, is_active = ? where id = ?",
-        [parsed.code, parsed.name, parsed.type, parsed.logoUrl || null, parsed.isActive, parsed.bankId]
+        `update banks
+         set code = ?, name = ?, type = ?, logo_url = ?,
+           deposit_account_name = ?, deposit_account_number = ?, is_active = ?
+         where id = ?`,
+        [
+          parsed.code,
+          parsed.name,
+          parsed.type,
+          parsed.logoUrl || null,
+          parsed.depositAccountName || null,
+          parsed.depositAccountNumber || null,
+          parsed.isActive,
+          parsed.bankId
+        ]
       );
       await audit(connection, admin.id, "bank.update", "bank", parsed.bankId, parsed);
     } else {
       const [result] = await connection.execute(
-        "insert into banks (code, name, type, logo_url, is_active) values (?, ?, ?, ?, ?)",
-        [parsed.code, parsed.name, parsed.type, parsed.logoUrl || null, parsed.isActive]
+        `insert into banks (code, name, type, logo_url, deposit_account_name, deposit_account_number, is_active)
+         values (?, ?, ?, ?, ?, ?, ?)`,
+        [
+          parsed.code,
+          parsed.name,
+          parsed.type,
+          parsed.logoUrl || null,
+          parsed.depositAccountName || null,
+          parsed.depositAccountNumber || null,
+          parsed.isActive
+        ]
       );
       await audit(connection, admin.id, "bank.create", "bank", Number((result as { insertId: number }).insertId), parsed);
     }

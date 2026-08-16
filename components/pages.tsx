@@ -12,6 +12,7 @@ import {
   slotGames,
   slotProviders
 } from "@/lib/content";
+import type { DepositPaymentTarget } from "@/lib/payment-providers";
 
 export function HomePage() {
   const homeNav = [
@@ -212,22 +213,20 @@ export function LoginPage() {
 
 export function DepositPage({
   method,
+  targets,
   success,
   error
 }: {
   method: "bank_transfer" | "qris";
+  targets: DepositPaymentTarget[];
   success?: string;
   error?: string;
 }) {
   const isQris = method === "qris";
   const amountOptions = [50000, 100000, 200000, 500000];
-  const bankOptions = isQris
-    ? [{ id: "QRIS", label: "QRIS Payment", image: "/deposit_files/logo-qris.png" }]
-    : [
-        { id: "1280826657", label: "BCA", image: "/all_files/BCA.svg" },
-        { id: "054501000593564", label: "BRI", image: "/all_files/BRI.svg" },
-        { id: "1446850410", label: "BNI", image: "/all_files/BNI.svg" }
-      ];
+  const readyTargets = isQris
+    ? targets
+    : targets.filter((target) => target.depositAccountName && target.depositAccountNumber);
 
   return (
     <section className="deposit deposit--d">
@@ -269,17 +268,17 @@ export function DepositPage({
           <div className="bank-select bank-select--d">
             <span className="bank-select__label">Pilih Bank</span>
             <div className="bank-select__body">
-              {bankOptions.map((bank, index) => (
-                <div className="bank-select__item" key={bank.id}>
-                  <label role="button" htmlFor={bank.id}>
-                    <img src={bank.image} alt={bank.label} />
+              {readyTargets.map((bank, index) => (
+                <div className="bank-select__item" key={bank.code}>
+                  <label role="button" htmlFor={`deposit-target-${bank.code}`}>
+                    {bank.logoUrl ? <img src={bank.logoUrl} alt={bank.name} /> : <span>{bank.name}</span>}
                   </label>
                   <input
-                    id={bank.id}
+                    id={`deposit-target-${bank.code}`}
                     className="bank-select__input"
                     type="radio"
-                    name="bankCode"
-                    value={bank.label}
+                    name="bankId"
+                    value={bank.id}
                     defaultChecked={index === 0}
                   />
                   <i className="bank-select__icon icon-circle icon--xs" />
@@ -287,9 +286,25 @@ export function DepositPage({
               ))}
             </div>
           </div>
-          <div className="alert alert--info">
+          {readyTargets.length > 0 && !isQris ? (
+            <div className="wallet-detail wallet-detail__deposit-to">
+              <span>Tujuan Deposit</span>
+              {readyTargets.map((target) => (
+                <div key={`deposit-detail-${target.code}`}>
+                  <strong>{target.name}</strong>
+                  <p>{target.depositAccountName}</p>
+                  <p>{target.depositAccountNumber}</p>
+                </div>
+              ))}
+            </div>
+          ) : null}
+          <div className={`alert alert--${readyTargets.length ? "info" : "danger"}`}>
             <i className="icon-info icon--lg" />
-            <p>Silahkan memilih salah satu Bank terlebih dahulu.</p>
+            <p>
+              {readyTargets.length
+                ? "Silahkan memilih salah satu Bank terlebih dahulu."
+                : "Rekening tujuan deposit belum tersedia."}
+            </p>
           </div>
           <div className="preset-amounts">
             <div className="preset-amounts__label">
@@ -340,7 +355,7 @@ export function DepositPage({
               </div>
             </div>
           ) : null}
-          <button type="submit" className="btn btn--block btn--success">
+          <button type="submit" className="btn btn--block btn--success" disabled={readyTargets.length === 0}>
             <span>Kirim</span>
           </button>
         </form>

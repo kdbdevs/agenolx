@@ -9,7 +9,7 @@ import { DesktopSlotSnapshot, MobileSlotSnapshot, type SlotCategory } from "@/co
 import { DesktopSportsSnapshot, MobileSportsSnapshot } from "@/components/sports-snapshot";
 import { DesktopStaticPageSnapshot, MobileStaticPageSnapshot, type StaticSnapshotKey } from "@/components/static-page-snapshot";
 import { getPageBySlug, getRouteKind } from "@/lib/content";
-import { getActivePaymentProviders } from "@/lib/payment-providers";
+import { getActiveDepositTargets, getActivePaymentProviders } from "@/lib/payment-providers";
 import { getCurrentUser } from "@/lib/session";
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
@@ -68,10 +68,13 @@ export default async function PublicRoute({ params, searchParams }: PageProps) {
 
   if (path === "/deposit/bank-transfer" || path === "/deposit/qris") {
     if (!user) redirect("/login?error=Silahkan%20masuk%20terlebih%20dahulu");
+    const method = path === "/deposit/qris" ? "qris" : "bank_transfer";
+    const depositTargets = await getActiveDepositTargets(method);
     return (
       <AppShell activePath={path} user={user}>
         <DepositPage
-          method={path === "/deposit/qris" ? "qris" : "bank_transfer"}
+          method={method}
+          targets={depositTargets}
           success={firstParam(query.success)}
           error={firstParam(query.error)}
         />

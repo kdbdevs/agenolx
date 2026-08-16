@@ -23,6 +23,7 @@ async function main() {
       }
     }
     await seedPaymentProviders(connection);
+    await seedPaymentProviderLogos(connection);
     console.log(`Applied ${statements.length} schema statements.`);
   } finally {
     connection.release();
@@ -47,6 +48,32 @@ async function seedPaymentProviders(connection: Awaited<ReturnType<typeof pool.g
       `insert ignore into banks (code, name, type, is_active)
        values (?, ?, ?, true)`,
       [provider.code, provider.name, paymentMethodToProviderType(provider.method)]
+    );
+  }
+
+  await connection.query("insert into schema_seeds (seed_key) values (?)", [seedKey]);
+}
+
+async function seedPaymentProviderLogos(connection: Awaited<ReturnType<typeof pool.getConnection>>) {
+  await connection.query(`
+    create table if not exists schema_seeds (
+      seed_key varchar(120) not null primary key,
+      applied_at timestamp not null default current_timestamp
+    )
+  `);
+
+  const seedKey = "payment_provider_logos_from_html_2026_08_16";
+  const [rows] = await connection.query("select seed_key from schema_seeds where seed_key = ? limit 1", [seedKey]);
+  if ((rows as unknown[]).length > 0) return;
+
+  for (const provider of PAYMENT_PROVIDERS) {
+    const logoUrl = "logoUrl" in provider ? provider.logoUrl : undefined;
+    if (!logoUrl) continue;
+    await connection.query(
+      `update banks
+       set logo_url = ?
+       where code = ? and type = ? and (logo_url is null or logo_url = '')`,
+      [logoUrl, provider.code, paymentMethodToProviderType(provider.method)]
     );
   }
 

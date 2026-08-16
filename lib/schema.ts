@@ -37,15 +37,21 @@ export const users = mysqlTable(
   ]
 );
 
-export const banks = mysqlTable("banks", {
-  id: bigint("id", { mode: "number", unsigned: true }).autoincrement().primaryKey(),
-  code: varchar("code", { length: 32 }).notNull(),
-  name: varchar("name", { length: 120 }).notNull(),
-  type: mysqlEnum("type", ["bank", "e_money"]).default("bank").notNull(),
-  logoUrl: varchar("logo_url", { length: 500 }),
-  isActive: boolean("is_active").default(true).notNull(),
-  ...timestamps
-});
+export const banks = mysqlTable(
+  "banks",
+  {
+    id: bigint("id", { mode: "number", unsigned: true }).autoincrement().primaryKey(),
+    code: varchar("code", { length: 32 }).notNull(),
+    name: varchar("name", { length: 120 }).notNull(),
+    type: mysqlEnum("type", ["bank", "e_money"]).default("bank").notNull(),
+    logoUrl: varchar("logo_url", { length: 500 }),
+    depositAccountName: varchar("deposit_account_name", { length: 160 }),
+    depositAccountNumber: varchar("deposit_account_number", { length: 80 }),
+    isActive: boolean("is_active").default(true).notNull(),
+    ...timestamps
+  },
+  (table) => [uniqueIndex("banks_code_unique").on(table.code)]
+);
 
 export const userBankAccounts = mysqlTable(
   "user_bank_accounts",
@@ -97,9 +103,11 @@ export const deposits = mysqlTable(
     id: bigint("id", { mode: "number", unsigned: true }).autoincrement().primaryKey(),
     userId: bigint("user_id", { mode: "number", unsigned: true }).notNull(),
     method: mysqlEnum("method", ["bank_transfer", "qris", "qris_automatic"]).notNull(),
+    bankId: bigint("bank_id", { mode: "number", unsigned: true }),
     amount: decimal("amount", { precision: 18, scale: 2 }).notNull(),
     status: mysqlEnum("status", ["pending", "approved", "rejected", "expired"]).default("pending").notNull(),
     reference: varchar("reference", { length: 160 }),
+    note: varchar("note", { length: 500 }),
     ...timestamps
   },
   (table) => [index("deposits_user_status_idx").on(table.userId, table.status)]

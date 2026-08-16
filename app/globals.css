@@ -5963,10 +5963,23 @@ i[data-v-36ca62b1]{margin-right:.5rem}
 
 .rebuild-page .bank-select label {
   display: flex;
+  align-items: center;
+  justify-content: center;
   width: 100%;
   height: 100%;
   cursor: pointer;
   padding: 0.5rem 0.5rem 0.5rem 2rem;
+}
+
+.rebuild-page .bank-select label span {
+  overflow: hidden;
+  width: 100%;
+  color: #fff;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-align: center;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .rebuild-page .bank-select label img {

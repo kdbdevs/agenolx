@@ -7,12 +7,23 @@ export type PaymentProvider = {
   code: string;
   name: string;
   method: PaymentMethod;
+  logoUrl?: string;
+};
+
+export type DepositPaymentTarget = {
+  id: number;
+  code: string;
+  name: string;
+  method: PaymentMethod;
+  logoUrl: string | null;
+  depositAccountName: string | null;
+  depositAccountNumber: string | null;
 };
 
 export const BANK_PROVIDERS = [
-  { code: "54", name: "BCA", method: "bank" },
-  { code: "40", name: "BRI", method: "bank" },
-  { code: "39", name: "BNI", method: "bank" },
+  { code: "54", name: "BCA", method: "bank", logoUrl: "/all_files/BCA.svg" },
+  { code: "40", name: "BRI", method: "bank", logoUrl: "/all_files/BRI.svg" },
+  { code: "39", name: "BNI", method: "bank", logoUrl: "/all_files/BNI.svg" },
   { code: "38", name: "Mandiri", method: "bank" },
   { code: "63", name: "Jago", method: "bank" },
   { code: "53", name: "HSBC", method: "bank" },
@@ -76,5 +87,48 @@ export async function getActivePaymentProviders() {
     code: row.code,
     name: row.name,
     method: providerTypeToPaymentMethod(row.type)
+  }));
+}
+
+export async function getActiveDepositTargets(method: "bank_transfer" | "qris") {
+  if (method === "qris") {
+    return [
+      {
+        id: 0,
+        code: "QRIS",
+        name: "QRIS Payment",
+        method: "e-money" as PaymentMethod,
+        logoUrl: "/deposit_files/logo-qris.png",
+        depositAccountName: null,
+        depositAccountNumber: null
+      }
+    ] satisfies DepositPaymentTarget[];
+  }
+
+  const [rows] = await pool.query(
+    `select id, code, name, type, logo_url as logoUrl,
+       deposit_account_name as depositAccountName,
+       deposit_account_number as depositAccountNumber
+     from banks
+     where is_active = true and type = 'bank'
+     order by id`
+  );
+
+  return (rows as Array<{
+    id: number;
+    code: string;
+    name: string;
+    type: PaymentProviderType;
+    logoUrl: string | null;
+    depositAccountName: string | null;
+    depositAccountNumber: string | null;
+  }>).map((row) => ({
+    id: row.id,
+    code: row.code,
+    name: row.name,
+    method: providerTypeToPaymentMethod(row.type),
+    logoUrl: row.logoUrl,
+    depositAccountName: row.depositAccountName,
+    depositAccountNumber: row.depositAccountNumber
   }));
 }

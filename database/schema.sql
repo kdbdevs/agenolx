@@ -20,6 +20,8 @@ create table if not exists banks (
   name varchar(120) not null,
   type enum('bank', 'e_money') not null default 'bank',
   logo_url varchar(500) null,
+  deposit_account_name varchar(160) null,
+  deposit_account_number varchar(80) null,
   is_active boolean not null default true,
   created_at timestamp not null default current_timestamp,
   updated_at timestamp not null default current_timestamp on update current_timestamp,
@@ -28,6 +30,12 @@ create table if not exists banks (
 
 alter table banks
   add column type enum('bank', 'e_money') not null default 'bank' after name;
+
+alter table banks
+  add column deposit_account_name varchar(160) null after logo_url;
+
+alter table banks
+  add column deposit_account_number varchar(80) null after deposit_account_name;
 
 create table if not exists user_bank_accounts (
   id bigint unsigned not null auto_increment primary key,
@@ -68,13 +76,21 @@ create table if not exists deposits (
   id bigint unsigned not null auto_increment primary key,
   user_id bigint unsigned not null,
   method enum('bank_transfer', 'qris', 'qris_automatic') not null,
+  bank_id bigint unsigned null,
   amount decimal(18,2) not null,
   status enum('pending', 'approved', 'rejected', 'expired') not null default 'pending',
   reference varchar(160) null,
+  note varchar(500) null,
   created_at timestamp not null default current_timestamp,
   updated_at timestamp not null default current_timestamp on update current_timestamp,
   key deposits_user_status_idx (user_id, status)
 );
+
+alter table deposits
+  add column bank_id bigint unsigned null after method;
+
+alter table deposits
+  add column note varchar(500) null after reference;
 
 alter table deposits
   add column reviewed_by bigint unsigned null after reference;

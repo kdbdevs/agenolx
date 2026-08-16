@@ -47,6 +47,14 @@ export default async function AdminBanksPage({ searchParams }: PageProps) {
               <label>Logo URL</label>
               <input name="logoUrl" placeholder="Opsional" />
             </div>
+            <div className="admin-field">
+              <label>Nama Rekening Deposit</label>
+              <input name="depositAccountName" placeholder="Opsional" />
+            </div>
+            <div className="admin-field">
+              <label>Nomor Rekening Deposit</label>
+              <input name="depositAccountNumber" placeholder="Opsional" />
+            </div>
           </form>
         </AdminCard>
 
@@ -69,6 +77,7 @@ export default async function AdminBanksPage({ searchParams }: PageProps) {
                 <tr>
                   <th>Bank</th>
                   <th>Tipe</th>
+                  <th>Rekening Deposit</th>
                   <th>Status</th>
                   <th>Dibuat</th>
                   <th>Edit</th>
@@ -82,6 +91,10 @@ export default async function AdminBanksPage({ searchParams }: PageProps) {
                       <small>{bank.code}</small>
                     </td>
                     <td>{bank.type}</td>
+                    <td>
+                      <strong>{bank.depositAccountName ?? "-"}</strong>
+                      <small>{bank.depositAccountNumber ?? ""}</small>
+                    </td>
                     <td><StatusBadge status={bank.isActive ? "active" : "disabled"} /></td>
                     <td><DateText value={bank.createdAt} /></td>
                     <td>
@@ -110,6 +123,14 @@ export default async function AdminBanksPage({ searchParams }: PageProps) {
                         <div className="admin-field" style={{ gridColumn: "1 / -1" }}>
                           <label>Logo URL</label>
                           <input name="logoUrl" defaultValue={bank.logoUrl ?? ""} />
+                        </div>
+                        <div className="admin-field">
+                          <label>Nama Rekening Deposit</label>
+                          <input name="depositAccountName" defaultValue={bank.depositAccountName ?? ""} />
+                        </div>
+                        <div className="admin-field">
+                          <label>Nomor Rekening Deposit</label>
+                          <input name="depositAccountNumber" defaultValue={bank.depositAccountNumber ?? ""} />
                         </div>
                       </form>
                     </td>

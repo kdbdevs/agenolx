@@ -42,6 +42,7 @@ export default async function AdminDepositsPage({ searchParams }: PageProps) {
                 <th>Deposit</th>
                 <th>User</th>
                 <th>Metode</th>
+                <th>Tujuan</th>
                 <th>Amount</th>
                 <th>Status</th>
                 <th>Waktu</th>
@@ -57,6 +58,15 @@ export default async function AdminDepositsPage({ searchParams }: PageProps) {
                   </td>
                   <td>{deposit.username}</td>
                   <td>{deposit.method.replace("_", " ")}</td>
+                  <td>
+                    <strong>{deposit.bankName ?? "-"}</strong>
+                    <small>
+                      {deposit.depositAccountName && deposit.depositAccountNumber
+                        ? `${deposit.depositAccountName} / ${deposit.depositAccountNumber}`
+                        : "-"}
+                    </small>
+                    {deposit.note ? <small>Catatan: {deposit.note}</small> : null}
+                  </td>
                   <td>{money(deposit.amount)}</td>
                   <td><StatusBadge status={deposit.status} /></td>
                   <td>

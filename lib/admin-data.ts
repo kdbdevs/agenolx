@@ -40,6 +40,8 @@ export type AdminBankRow = {
   name: string;
   type: "bank" | "e_money";
   logoUrl: string | null;
+  depositAccountName: string | null;
+  depositAccountNumber: string | null;
   isActive: boolean;
   createdAt: string;
 };
@@ -51,6 +53,10 @@ export type AdminDepositRow = {
   amount: number;
   status: "pending" | "approved" | "rejected" | "expired";
   reference: string | null;
+  bankName: string | null;
+  depositAccountName: string | null;
+  depositAccountNumber: string | null;
+  note: string | null;
   adminNotes: string | null;
   createdAt: string;
   updatedAt: string;
@@ -198,7 +204,10 @@ export async function getAdminBanks(filter: AdminFilter = {}) {
     params.push(like, like);
   }
   const [rows] = await pool.execute(
-    `select id, code, name, type, logo_url as logoUrl, is_active as isActive, created_at as createdAt
+    `select id, code, name, type, logo_url as logoUrl,
+       deposit_account_name as depositAccountName,
+       deposit_account_number as depositAccountNumber,
+       is_active as isActive, created_at as createdAt
      from banks
      ${where.length ? `where ${where.join(" and ")}` : ""}
      order by type, name
@@ -224,10 +233,16 @@ export async function getAdminDeposits(filter: AdminFilter = {}) {
     params.push(like, like);
   }
   const [rows] = await pool.execute(
-    `select d.id, u.username, d.method, d.amount, d.status, d.reference, d.admin_notes as adminNotes,
+    `select d.id, u.username, d.method, d.amount, d.status, d.reference,
+       b.name as bankName,
+       b.deposit_account_name as depositAccountName,
+       b.deposit_account_number as depositAccountNumber,
+       d.note,
+       d.admin_notes as adminNotes,
        d.created_at as createdAt, d.updated_at as updatedAt
      from deposits d
      join users u on u.id = d.user_id
+     left join banks b on b.id = d.bank_id
      ${where.length ? `where ${where.join(" and ")}` : ""}
      order by d.id desc
      limit 100`,
