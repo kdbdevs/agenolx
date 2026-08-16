@@ -22,7 +22,7 @@ export default async function AdminBanksPage({ searchParams }: PageProps) {
     >
       <div className="admin-grid" style={{ gap: "18px" }}>
         <AdminCard title="Tambah Bank / E-money">
-          <form className="admin-form-grid admin-form-grid--four" action={saveBank}>
+          <form className="admin-form-grid admin-form-grid--four admin-bank-form" action={saveBank}>
             <div className="admin-field">
               <label>Kode</label>
               <input name="code" placeholder="BCA / 54" required />
@@ -43,15 +43,15 @@ export default async function AdminBanksPage({ searchParams }: PageProps) {
               Aktif
             </label>
             <button className="admin-button" type="submit">Tambah</button>
-            <div className="admin-field" style={{ gridColumn: "1 / -1" }}>
+            <div className="admin-field admin-bank-form__logo">
               <label>Logo URL</label>
               <input name="logoUrl" placeholder="Opsional" />
             </div>
-            <div className="admin-field">
+            <div className="admin-field admin-bank-form__account">
               <label>Nama Rekening Deposit</label>
               <input name="depositAccountName" placeholder="Opsional" />
             </div>
-            <div className="admin-field">
+            <div className="admin-field admin-bank-form__account">
               <label>Nomor Rekening Deposit</label>
               <input name="depositAccountNumber" placeholder="Opsional" />
             </div>
@@ -98,7 +98,7 @@ export default async function AdminBanksPage({ searchParams }: PageProps) {
                     <td><StatusBadge status={bank.isActive ? "active" : "disabled"} /></td>
                     <td><DateText value={bank.createdAt} /></td>
                     <td>
-                      <form className="admin-form-grid admin-form-grid--four" action={saveBank} style={{ padding: 0 }}>
+                      <form className="admin-form-grid admin-form-grid--four admin-bank-form" action={saveBank} style={{ padding: 0 }}>
                         <input type="hidden" name="bankId" value={bank.id} />
                         <div className="admin-field">
                           <label>Kode</label>
@@ -120,15 +120,15 @@ export default async function AdminBanksPage({ searchParams }: PageProps) {
                           Aktif
                         </label>
                         <button className="admin-button admin-button--dark" type="submit">Simpan</button>
-                        <div className="admin-field" style={{ gridColumn: "1 / -1" }}>
+                        <div className="admin-field admin-bank-form__logo">
                           <label>Logo URL</label>
                           <input name="logoUrl" defaultValue={bank.logoUrl ?? ""} />
                         </div>
-                        <div className="admin-field">
+                        <div className="admin-field admin-bank-form__account">
                           <label>Nama Rekening Deposit</label>
                           <input name="depositAccountName" defaultValue={bank.depositAccountName ?? ""} />
                         </div>
-                        <div className="admin-field">
+                        <div className="admin-field admin-bank-form__account">
                           <label>Nomor Rekening Deposit</label>
                           <input name="depositAccountNumber" defaultValue={bank.depositAccountNumber ?? ""} />
                         </div>

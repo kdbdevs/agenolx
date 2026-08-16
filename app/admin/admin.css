@@ -341,6 +341,23 @@
   align-items: end;
 }
 
+.admin-bank-form {
+  grid-template-columns: minmax(110px, 0.7fr) minmax(190px, 1.25fr) minmax(170px, 1fr) 130px 156px;
+}
+
+.admin-bank-form__logo {
+  grid-column: 1 / -1;
+}
+
+.admin-bank-form__account {
+  grid-column: span 2;
+  max-width: 360px;
+}
+
+.admin-bank-form__account label {
+  white-space: nowrap;
+}
+
 .admin-form-grid--three {
   grid-template-columns: 1.3fr 180px 1fr auto;
   align-items: end;
@@ -693,6 +710,12 @@
   .admin-form-grid--four,
   .admin-form-grid--three {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .admin-bank-form__account,
+  .admin-bank-form__logo {
+    grid-column: 1 / -1;
+    max-width: none;
   }
 }
 
