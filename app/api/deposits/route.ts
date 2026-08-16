@@ -7,7 +7,7 @@ import { redirectRelative, withSearchParam } from "@/lib/redirect";
 
 const depositSchema = z.object({
   method: z.enum(["bank_transfer", "qris"]),
-  amount: z.coerce.number().int().min(50000, "Minimal deposit Rp 50.000").max(100000000, "Jumlah deposit terlalu besar"),
+  amount: z.coerce.number().int().min(10000, "Minimal deposit Rp 10.000").max(100000000, "Jumlah deposit terlalu besar"),
   bankId: z.coerce.number().int().positive().optional(),
   note: z.string().trim().max(500).optional()
 });
