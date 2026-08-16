@@ -3,7 +3,7 @@ import { DesktopCasinoSnapshot, MobileCasinoSnapshot, type CasinoCategory } from
 import { DesktopHomeSnapshot } from "@/components/desktop-home-snapshot";
 import { DesktopExclusiveSnapshot, MobileExclusiveSnapshot } from "@/components/exclusive-snapshot";
 import { MobileHomeSnapshot } from "@/components/mobile-home-snapshot";
-import { AccountPlaceholderPage, CatalogPage, DepositPage, LoginPage, PromotionsPage, RegisterPage, UserHistoryPage } from "@/components/pages";
+import { AccountPlaceholderPage, CatalogPage, DepositPage, LoginPage, PromotionsPage, RegisterPage, UserHistoryPage, UserReferralHistoryPage } from "@/components/pages";
 import { DesktopPokerSnapshot, MobilePokerSnapshot } from "@/components/poker-snapshot";
 import { DesktopSlotSnapshot, MobileSlotSnapshot, type SlotCategory } from "@/components/slot-snapshot";
 import { DesktopSportsSnapshot, MobileSportsSnapshot } from "@/components/sports-snapshot";
@@ -11,6 +11,7 @@ import { DesktopStaticPageSnapshot, MobileStaticPageSnapshot, type StaticSnapsho
 import { getPageBySlug, getRouteKind } from "@/lib/content";
 import { getPendingDepositForUser } from "@/lib/deposits";
 import { getActiveDepositTargets, getActivePaymentProviders } from "@/lib/payment-providers";
+import { getUserReferralHistory, parseReferralPage } from "@/lib/referrals";
 import { getCurrentUser } from "@/lib/session";
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
@@ -96,11 +97,21 @@ export default async function PublicRoute({ params, searchParams }: PageProps) {
     );
   }
 
-  if (path === "/user/messages" || path === "/user/messages/" || path === "/user/bonuses" || path === "/user/referral/history") {
+  if (path === "/user/referral/history") {
+    if (!user) redirect("/login?error=Silahkan%20masuk%20terlebih%20dahulu");
+    const referralHistory = await getUserReferralHistory(user.id, parseReferralPage(query.page));
+    return (
+      <AppShell activePath={path} user={user}>
+        <UserReferralHistoryPage history={referralHistory} />
+      </AppShell>
+    );
+  }
+
+  if (path === "/user/messages" || path === "/user/messages/" || path === "/user/bonuses") {
     if (!user) redirect("/login?error=Silahkan%20masuk%20terlebih%20dahulu");
     return (
       <AppShell activePath={path} user={user}>
-        <AccountPlaceholderPage title={path.includes("bonuses") ? "Bonus" : path.includes("referral") ? "Referral" : "Pesan"} />
+        <AccountPlaceholderPage title={path.includes("bonuses") ? "Bonus" : "Pesan"} />
       </AppShell>
     );
   }

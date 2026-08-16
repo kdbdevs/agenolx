@@ -16,6 +16,7 @@ import { DepositAmountPicker } from "@/components/deposit-amount-picker";
 import { DepositBankSelector } from "@/components/deposit-bank-selector";
 import type { PendingDeposit } from "@/lib/deposits";
 import type { DepositPaymentTarget } from "@/lib/payment-providers";
+import type { UserReferralHistory } from "@/lib/referrals";
 
 export function HomePage() {
   const homeNav = [
@@ -347,6 +348,82 @@ export function UserHistoryPage() {
   );
 }
 
+export function UserReferralHistoryPage({ history }: { history: UserReferralHistory }) {
+  const referralPath = history.referralCode ? `/register?ref=${encodeURIComponent(history.referralCode)}` : "";
+  const firstItem = history.totalDownlines === 0 ? 0 : (history.currentPage - 1) * history.pageSize + 1;
+  const lastItem = Math.min(history.currentPage * history.pageSize, history.totalDownlines);
+
+  return (
+    <section className="referral-history referral-history--d">
+      <header className="page-header">
+        <h3>Referral</h3>
+      </header>
+
+      <div className="referral-history__summary">
+        <div className="referral-history__code-card">
+          <span>Kode Referral</span>
+          <strong>{history.referralCode || "-"}</strong>
+          {referralPath ? <small>{referralPath}</small> : null}
+        </div>
+        <div className="referral-history__code-card">
+          <span>Total Downline</span>
+          <strong>{history.totalDownlines}</strong>
+          <small>
+            {history.totalDownlines > 0
+              ? `Menampilkan ${firstItem}-${lastItem} dari ${history.totalDownlines}`
+              : "Belum ada downline terdaftar"}
+          </small>
+        </div>
+      </div>
+
+      <div className="referral-history__table-wrap">
+        <table className="referral-history__table">
+          <thead>
+            <tr>
+              <th>ID Downline</th>
+              <th>Tanggal Register</th>
+            </tr>
+          </thead>
+          <tbody>
+            {history.downlines.map((downline) => (
+              <tr key={downline.id}>
+                <td>
+                  <strong>#{downline.id}</strong>
+                </td>
+                <td>{formatDateTime(downline.createdAt)}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+        {history.downlines.length === 0 ? (
+          <div className="referral-history__empty">Belum ada downline dari kode referral ini.</div>
+        ) : null}
+      </div>
+
+      {history.totalPages > 1 ? (
+        <nav className="referral-history__pagination" aria-label="Pagination referral downline">
+          {referralPageNumbers(history.currentPage, history.totalPages).map((page, index) =>
+            page === "..." ? (
+              <span className="referral-history__ellipsis" key={`ellipsis-${index}`}>
+                ...
+              </span>
+            ) : (
+              <Link
+                className={`referral-history__page${page === history.currentPage ? " referral-history__page--active" : ""}`}
+                href={`/user/referral/history?page=${page}`}
+                aria-current={page === history.currentPage ? "page" : undefined}
+                key={page}
+              >
+                {page}
+              </Link>
+            )
+          )}
+        </nav>
+      ) : null}
+    </section>
+  );
+}
+
 export function AccountPlaceholderPage({ title }: { title: string }) {
   return (
     <section className="static-page static-page--d">
@@ -358,6 +435,30 @@ export function AccountPlaceholderPage({ title }: { title: string }) {
       </div>
     </section>
   );
+}
+
+function formatDateTime(value: string) {
+  return new Intl.DateTimeFormat("id-ID", {
+    dateStyle: "medium",
+    timeStyle: "short"
+  }).format(new Date(value));
+}
+
+function referralPageNumbers(currentPage: number, totalPages: number) {
+  if (totalPages <= 7) {
+    return Array.from({ length: totalPages }, (_, index) => index + 1);
+  }
+
+  const pages: Array<number | "..."> = [1];
+  const start = Math.max(2, currentPage - 1);
+  const end = Math.min(totalPages - 1, currentPage + 1);
+
+  if (start > 2) pages.push("...");
+  for (let page = start; page <= end; page += 1) pages.push(page);
+  if (end < totalPages - 1) pages.push("...");
+  pages.push(totalPages);
+
+  return pages;
 }
 
 export function CatalogPage({ page }: { page: PageData }) {
