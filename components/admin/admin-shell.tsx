@@ -5,7 +5,7 @@ import type { AdminSession } from "@/lib/admin-auth";
 const navItems = [
   { href: "/admin", label: "Dashboard", icon: "▦" },
   { href: "/admin/users", label: "Users", icon: "◉" },
-  { href: "/admin/referrals", label: "Referral", icon: "⌁" },
+  { href: "/admin/referrals/links", activeKey: "/admin/referrals", label: "Referral", icon: "⌁" },
   { href: "/admin/banks", label: "Banks", icon: "▤" },
   { href: "/admin/deposits", label: "Deposits", icon: "↧" },
   { href: "/admin/withdrawals", label: "Withdrawals", icon: "↥" }
@@ -34,7 +34,7 @@ export function AdminShell({
         <nav className="admin-nav" aria-label="Admin navigation">
           <p className="admin-nav__eyebrow">Menu</p>
           {navItems.map((item) => (
-            <Link className={`admin-nav__item${active === item.href ? " admin-nav__item--active" : ""}`} href={item.href} key={item.href}>
+            <Link className={`admin-nav__item${active === (item.activeKey ?? item.href) ? " admin-nav__item--active" : ""}`} href={item.href} key={item.href}>
               <span>{item.icon}</span>
               {item.label}
             </Link>
