@@ -17,6 +17,7 @@ import { DepositBankSelector } from "@/components/deposit-bank-selector";
 import type { PendingDeposit } from "@/lib/deposits";
 import type { DepositPaymentTarget } from "@/lib/payment-providers";
 import type { UserReferralHistory } from "@/lib/referrals";
+import { UsernameAvailabilityController } from "@/components/username-availability-controller";
 
 export function HomePage() {
   const homeNav = [
@@ -144,19 +145,33 @@ export function HomePage() {
   );
 }
 
-export function RegisterPage({ referralCode }: { referralCode?: string }) {
+export function RegisterPage({
+  referralCode,
+  error,
+  errorField
+}: {
+  referralCode?: string;
+  error?: string;
+  errorField?: string;
+}) {
   return (
     <section className="register register--d rebuild-register">
       <header className="page-header">
         <h3>Daftar</h3>
       </header>
       <form action="/api/auth/register" method="post">
+        <AuthFormError message={error} />
         <div className="register-form-1__fields rebuild-register__fields">
           <fieldset className="rebuild-fieldset">
             <h3>Informasi Akun</h3>
-            <Field label="Username" name="username" />
-            <Field label="Password" name="password" type="password" />
-            <Field label="Masukkan kembali Password" name="passwordConfirm" type="password" />
+            <Field label="Username" name="username" error={errorField === "username" ? error : undefined} checkUsername />
+            <Field label="Password" name="password" type="password" error={errorField === "password" ? error : undefined} />
+            <Field
+              label="Masukkan kembali Password"
+              name="passwordConfirm"
+              type="password"
+              error={errorField === "passwordConfirm" ? error : undefined}
+            />
             <p className="rebuild-help">
               Password wajib memiliki minimal 8 karakter, dan wajib memiliki minimal 1 huruf dan 1 angka. Karakter
               spesial yang diperbolehkan adalah ! @ # $ % ^ * _ | , .
@@ -167,23 +182,25 @@ export function RegisterPage({ referralCode }: { referralCode?: string }) {
               defaultValue={referralCode}
               readOnly={Boolean(referralCode)}
               help={referralCode ? "Kode referral dari link affiliator terkunci otomatis." : undefined}
+              error={errorField === "referralCode" ? error : undefined}
             />
           </fieldset>
           <fieldset className="rebuild-fieldset">
             <h3>Informasi Pribadi</h3>
             <Field label="Nama Lengkap" name="fullName" />
-            <Field label="E-mail" name="email" type="email" />
-            <Field label="Nomor Telepon" name="phone" type="tel" prefix="+62" />
+            <Field label="E-mail" name="email" type="email" error={errorField === "email" ? error : undefined} />
+            <Field label="Nomor Telepon" name="phone" type="tel" prefix="+62" error={errorField === "phone" ? error : undefined} />
             <h3>Informasi Pembayaran</h3>
-            <div className="rebuild-field">
+            <div className={`rebuild-field ${errorField === "paymentMethod" ? "has-auth-error" : ""}`}>
               <label>Metode Pembayaran</label>
-              <select name="paymentMethod" defaultValue="">
+              <select name="paymentMethod" defaultValue="" className={errorField === "paymentMethod" ? "input--invalid" : ""}>
                 <option value="" disabled>
                   Pilih Metode Pembayaran
                 </option>
                 <option>Bank</option>
                 <option>E-money</option>
               </select>
+              {errorField === "paymentMethod" && error ? <p className="input__error auth-field-error">{error}</p> : null}
             </div>
           </fieldset>
         </div>
@@ -191,22 +208,24 @@ export function RegisterPage({ referralCode }: { referralCode?: string }) {
           Daftar
         </button>
       </form>
+      <UsernameAvailabilityController />
     </section>
   );
 }
 
-export function LoginPage() {
+export function LoginPage({ error, errorField }: { error?: string; errorField?: string }) {
   return (
     <section className="register register--d rebuild-register">
       <header className="page-header">
         <h3>Masuk</h3>
       </header>
       <form action="/api/auth/login" method="post">
+        <AuthFormError message={error} />
         <div className="register-form-1__fields rebuild-register__fields" style={{ gridTemplateColumns: "1fr" }}>
           <fieldset className="rebuild-fieldset">
             <h3>Informasi Akun</h3>
-            <Field label="Username" name="username" />
-            <Field label="Password" name="password" type="password" />
+            <Field label="Username" name="username" error={errorField === "username" ? error : undefined} />
+            <Field label="Password" name="password" type="password" error={errorField === "password" ? error : undefined} />
             <label className="input-confirm__label rebuild-check" style={{ marginBottom: "1rem" }}>
               <input name="remember" type="checkbox" />
               <span>Tetap masuk</span>
@@ -782,7 +801,9 @@ function Field({
   prefix,
   defaultValue,
   readOnly = false,
-  help
+  help,
+  error,
+  checkUsername = false
 }: {
   label: string;
   name: string;
@@ -791,9 +812,11 @@ function Field({
   defaultValue?: string;
   readOnly?: boolean;
   help?: string;
+  error?: string;
+  checkUsername?: boolean;
 }) {
   return (
-    <div className="input__container rebuild-field">
+    <div className={`input__container rebuild-field ${error ? "has-auth-error" : ""}`}>
       <label>{label}</label>
       <div style={{ display: "flex", gap: "0.5rem" }}>
         {prefix ? (
@@ -808,11 +831,27 @@ function Field({
           defaultValue={defaultValue ?? ""}
           readOnly={readOnly}
           aria-readonly={readOnly || undefined}
+          aria-invalid={error ? "true" : undefined}
+          className={error ? "input--invalid" : undefined}
+          data-username-check={checkUsername ? "true" : undefined}
           data-referral-locked={readOnly ? "true" : undefined}
           title={readOnly ? "Kode referral dari link affiliator" : undefined}
         />
       </div>
       {help ? <p className="input__error referral-lock-note">{help}</p> : null}
+      {checkUsername ? <p className="input__error username-availability-note" data-username-availability-note="true" /> : null}
+      {error ? <p className="input__error auth-field-error">{error}</p> : null}
+    </div>
+  );
+}
+
+function AuthFormError({ message }: { message?: string }) {
+  if (!message) return null;
+
+  return (
+    <div className="auth-form-error" role="alert">
+      <i className="icon-info icon--lg" />
+      <p>{message}</p>
     </div>
   );
 }

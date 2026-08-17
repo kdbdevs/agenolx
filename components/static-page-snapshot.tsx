@@ -14,6 +14,7 @@ import {
   MobileSnapshotFooter
 } from "./mobile-home-snapshot";
 import { AuthenticatedMobileHeader, AuthenticatedMobileStickyFooter, type AuthSnapshotProps } from "@/components/authenticated-chrome";
+import { UsernameAvailabilityController } from "@/components/username-availability-controller";
 import { brand } from "@/lib/content";
 import { splitPaymentProviders, type PaymentProvider } from "@/lib/payment-providers";
 
@@ -190,11 +191,22 @@ type StaticPageSnapshotProps = {
   pageKey: StaticSnapshotKey;
   paymentProviders?: readonly PaymentProvider[];
   referralCode?: string;
+  authError?: string;
+  authErrorField?: string;
 } & AuthSnapshotProps;
 
-export function DesktopStaticPageSnapshot({ pageKey, user, paymentProviders, referralCode }: StaticPageSnapshotProps) {
+export function DesktopStaticPageSnapshot({ pageKey, user, paymentProviders, referralCode, authError, authErrorField }: StaticPageSnapshotProps) {
   const config = snapshotConfigs[pageKey];
-  const mainHtml = readSourceSection(config.desktopSource, config.mainClass, false, config.activeHref, paymentProviders, referralCode);
+  const mainHtml = readSourceSection(
+    config.desktopSource,
+    config.mainClass,
+    false,
+    config.activeHref,
+    paymentProviders,
+    referralCode,
+    authError,
+    authErrorField
+  );
   const footerHtml = readFooterText(config.desktopSource, false, config.activeHref);
 
   return (
@@ -214,13 +226,14 @@ export function DesktopStaticPageSnapshot({ pageKey, user, paymentProviders, ref
           <DesktopFooter />
           <DesktopQuickMenu />
           <DesktopFloatingLiveChat />
+          {pageKey === "register" ? <UsernameAvailabilityController /> : null}
         </div>
       </div>
     </div>
   );
 }
 
-export function MobileStaticPageSnapshot({ pageKey, user, paymentProviders, referralCode }: StaticPageSnapshotProps) {
+export function MobileStaticPageSnapshot({ pageKey, user, paymentProviders, referralCode, authError, authErrorField }: StaticPageSnapshotProps) {
   const config = snapshotConfigs[pageKey];
   const source = config.mobileSource ?? config.desktopSource;
   const mainHtml = readSourceSection(
@@ -229,7 +242,9 @@ export function MobileStaticPageSnapshot({ pageKey, user, paymentProviders, refe
     Boolean(config.forceMobileFromDesktop),
     config.activeHref,
     paymentProviders,
-    referralCode
+    referralCode,
+    authError,
+    authErrorField
   );
   const footerHtml = readFooterText(source, Boolean(config.forceMobileFromDesktop), config.activeHref);
 
@@ -249,6 +264,7 @@ export function MobileStaticPageSnapshot({ pageKey, user, paymentProviders, refe
           <StaticMobileStickyFooter user={user} activePath={config.activeHref ?? ""} assetRoot={config.mobileAssetRoot} />
           <MobileFloatingLiveChat />
           <MobileQuickFloatingMenu />
+          {pageKey === "register" ? <UsernameAvailabilityController /> : null}
         </div>
       </div>
     </div>
@@ -408,12 +424,14 @@ function readSourceSection(
   forceMobile = false,
   activeHref?: string,
   paymentProviders: readonly PaymentProvider[] = [],
-  referralCode?: string
+  referralCode?: string,
+  authError?: string,
+  authErrorField?: string
 ) {
   const html = sourceHtml[source];
   const match = findSectionByClass(html, classToken);
   if (!match) throw new Error(`Main section ${classToken} not found in ${source}`);
-  let output = sanitizeStaticHtml(match, forceMobile, activeHref, paymentProviders, referralCode);
+  let output = sanitizeStaticHtml(match, forceMobile, activeHref, paymentProviders, referralCode, authError, authErrorField);
   if (isPromotionSource(source)) {
     output = sanitizePromotionSnapshotHtml(output);
   }
@@ -445,7 +463,9 @@ function sanitizeStaticHtml(
   forceMobile: boolean,
   activeHref?: string,
   paymentProviders: readonly PaymentProvider[] = [],
-  referralCode?: string
+  referralCode?: string,
+  authError?: string,
+  authErrorField?: string
 ) {
   let output = html
     .replace(/https:\/\/agenolx\.com/g, "")
@@ -463,7 +483,7 @@ function sanitizeStaticHtml(
   }
 
   if (output.includes("register-form-1")) {
-    output = wireRegisterSnapshotForm(output, paymentProviders, referralCode);
+    output = wireRegisterSnapshotForm(output, paymentProviders, referralCode, authError, authErrorField);
   }
 
   return output;
@@ -491,7 +511,13 @@ function replaceLegacyBrandText(html: string) {
     .replace(/\bagenolx\b/g, "pemulabet");
 }
 
-function wireRegisterSnapshotForm(html: string, paymentProviders: readonly PaymentProvider[], referralCode?: string) {
+function wireRegisterSnapshotForm(
+  html: string,
+  paymentProviders: readonly PaymentProvider[],
+  referralCode?: string,
+  authError?: string,
+  authErrorField?: string
+) {
   const formMatch = html.match(/<form\b[^>]*class="[^"]*\bregister-form-1\b[^"]*"[\s\S]*?<\/form>/);
   if (!formMatch) return html;
 
@@ -516,6 +542,8 @@ function wireRegisterSnapshotForm(html: string, paymentProviders: readonly Payme
     });
 
   wiredForm = renameRegisterInput(wiredForm, /(<div\b[^>]*class="[^"]*\binput-username\b[^"]*"[\s\S]*?<input\b)([^>]*)(>)/, "username");
+  wiredForm = addRegisterControlAttributes(wiredForm, "username", 'data-username-check="true" autocomplete="username"');
+  wiredForm = injectUsernameAvailabilityNote(wiredForm);
   wiredForm = renameRegisterInput(wiredForm, /(<label>Password<\/label>[\s\S]*?<input\b)([^>]*)(>)/, "password");
   wiredForm = renameRegisterInput(wiredForm, /(<label>Masukkan kembali Password<\/label>[\s\S]*?<input\b)([^>]*)(>)/, "passwordConfirm");
   wiredForm = renameRegisterInput(wiredForm, /(<label>Kode Referral<\/label>[\s\S]*?<input\b)([^>]*)(>)/, "referralCode");
@@ -526,6 +554,8 @@ function wireRegisterSnapshotForm(html: string, paymentProviders: readonly Payme
   wiredForm = renameRegisterInput(wiredForm, /(<div\b[^>]*class="[^"]*\binput-phone\b[^"]*"[\s\S]*?<input\b)([^>]*)(>)/, "phone");
   wiredForm = injectRegisterPaymentDetails(wiredForm, paymentProviders);
   wiredForm = removeRegisterCaptcha(wiredForm);
+  wiredForm = injectAuthFormError(wiredForm, authError);
+  wiredForm = markRegisterControlError(wiredForm, authErrorField, authError);
   wiredForm += registerPaymentControllerScript();
 
   return html.replace(formMatch[0], wiredForm);
@@ -537,6 +567,60 @@ function escapeAttribute(value: string) {
     .replace(/"/g, "&quot;")
     .replace(/</g, "&lt;")
     .replace(/>/g, "&gt;");
+}
+
+function escapeHtml(value: string) {
+  return escapeAttribute(value).replace(/'/g, "&#39;");
+}
+
+function injectAuthFormError(html: string, message?: string) {
+  if (!message) return html;
+  const errorHtml = `<div class="auth-form-error" role="alert"><i class="icon-info icon--lg"></i><p>${escapeHtml(message)}</p></div>`;
+  return html.replace(/(<form\b[^>]*>)/, `$1${errorHtml}`);
+}
+
+function addRegisterControlAttributes(html: string, name: string, attributesToAdd: string) {
+  return html.replace(new RegExp(`(<(?:input|select)\\b(?=[^>]*\\sname="${name}")[^>]*)(>)`), (_match, prefix: string, suffix: string) => {
+    let nextAttributes = prefix;
+    for (const attribute of attributesToAdd.trim().split(/\s+(?=[a-zA-Z-]+=)/)) {
+      const attributeName = attribute.split("=")[0];
+      nextAttributes = nextAttributes.replace(new RegExp(`\\s${attributeName}="[^"]*"`, "g"), "");
+      nextAttributes += ` ${attribute}`;
+    }
+    return `${nextAttributes}${suffix}`;
+  });
+}
+
+function injectUsernameAvailabilityNote(html: string) {
+  if (html.includes('data-username-availability-note="true"')) return html;
+  return html.replace(
+    /(<div\b[^>]*class="[^"]*\binput-username\b[^"]*"[\s\S]*?<div\b[^>]*class="[^"]*\binput__root\b[^"]*"[\s\S]*?<\/div>)/,
+    `$1<p class="input__error username-availability-note" data-username-availability-note="true"></p>`
+  );
+}
+
+function markRegisterControlError(html: string, fieldName?: string, message?: string) {
+  if (!fieldName || !message) return html;
+  return html.replace(
+    new RegExp(`(<(?:input|select)\\b(?=[^>]*\\sname="${fieldName}")[^>]*)(>)`),
+    (_match, prefix: string, suffix: string) => {
+      const nextAttributes = appendClassAttribute(prefix, "input--invalid")
+        .replace(/\saria-invalid="[^"]*"/g, "")
+        .replace(/\sdata-auth-error="[^"]*"/g, "");
+      return `${nextAttributes} aria-invalid="true" data-auth-error="true"${suffix}`;
+    }
+  );
+}
+
+function appendClassAttribute(attributes: string, className: string) {
+  if (/\sclass="[^"]*"/.test(attributes)) {
+    return attributes.replace(/\sclass="([^"]*)"/, (_match, classValue: string) => {
+      const classes = new Set(classValue.split(/\s+/).filter(Boolean));
+      classes.add(className);
+      return ` class="${Array.from(classes).join(" ")}"`;
+    });
+  }
+  return `${attributes} class="${className}"`;
 }
 
 function setRegisterInputValue(html: string, name: string, value?: string) {

@@ -1115,6 +1115,53 @@ body {
   font-family: inherit;
 }
 
+.auth-form-error {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  width: 100%;
+  margin-bottom: 1rem;
+  padding: 0.75rem 1rem;
+  border: 1px solid rgba(255, 77, 77, 0.85);
+  border-radius: 5px;
+  color: #fff;
+  background-color: rgba(255, 77, 77, 0.12);
+}
+
+.auth-form-error i {
+  flex: 0 0 auto;
+  margin-top: 0.125rem;
+  color: #ff4d4d;
+}
+
+.auth-form-error p {
+  margin: 0;
+  line-height: 1.45;
+}
+
+.rebuild-field input.input--invalid,
+.rebuild-field select.input--invalid {
+  border-color: #ff4d4d;
+}
+
+.rebuild-field input.input--valid,
+.rebuild-field select.input--valid {
+  border-color: #139c44;
+}
+
+.auth-field-error,
+.username-availability-note {
+  display: block;
+}
+
+.username-availability-note {
+  min-height: 1rem;
+}
+
+.username-availability-note--ok {
+  color: #139c44;
+}
+
 .input[data-referral-locked="true"],
 .rebuild-field input[data-referral-locked="true"] {
   cursor: not-allowed;

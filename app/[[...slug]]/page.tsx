@@ -54,12 +54,14 @@ export default async function PublicRoute({ params, searchParams }: PageProps) {
   const routeKind = getRouteKind(path);
   const page = getPageBySlug(path);
   const user = await getCurrentUser();
+  const authError = firstParam(query.error);
+  const authErrorField = firstParam(query.field);
 
   if (path === "/login") {
     if (user) redirect("/");
     return (
       <AppShell activePath={path} user={null}>
-        <LoginPage />
+        <LoginPage error={authError} errorField={authErrorField} />
       </AppShell>
     );
   }
@@ -179,6 +181,8 @@ export default async function PublicRoute({ params, searchParams }: PageProps) {
   if (staticPageKey) {
     const paymentProviders = staticPageKey === "register" ? await getActivePaymentProviders() : undefined;
     const referralCode = staticPageKey === "register" ? firstParam(query.ref) ?? firstParam(query.referralCode) : undefined;
+    const registerError = staticPageKey === "register" ? authError : undefined;
+    const registerErrorField = staticPageKey === "register" ? authErrorField : undefined;
 
     return (
       <>
@@ -188,6 +192,8 @@ export default async function PublicRoute({ params, searchParams }: PageProps) {
             user={user}
             paymentProviders={paymentProviders}
             referralCode={referralCode}
+            authError={registerError}
+            authErrorField={registerErrorField}
           />
         </div>
         <div className="static-page-desktop-render">
@@ -196,6 +202,8 @@ export default async function PublicRoute({ params, searchParams }: PageProps) {
             user={user}
             paymentProviders={paymentProviders}
             referralCode={referralCode}
+            authError={registerError}
+            authErrorField={registerErrorField}
           />
         </div>
       </>
@@ -257,7 +265,13 @@ export default async function PublicRoute({ params, searchParams }: PageProps) {
 
   return (
     <AppShell activePath={path} user={user}>
-      {routeKind === "register" ? <RegisterPage referralCode={firstParam(query.ref) ?? firstParam(query.referralCode)} /> : null}
+      {routeKind === "register" ? (
+        <RegisterPage
+          referralCode={firstParam(query.ref) ?? firstParam(query.referralCode)}
+          error={authError}
+          errorField={authErrorField}
+        />
+      ) : null}
       {routeKind === "promotions" ? <PromotionsPage category={page.category} /> : null}
       {routeKind === "catalog" ? <CatalogPage page={page} /> : null}
     </AppShell>

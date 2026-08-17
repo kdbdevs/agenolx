@@ -48,9 +48,17 @@ function field(formData: FormData, name: string) {
   return typeof value === "string" ? value : "";
 }
 
-function redirectWithError(request: NextRequest, message: string) {
+function redirectWithError(request: NextRequest, message: string, fieldName?: string, referralCode?: string) {
   void request;
-  return redirectRelative(withSearchParam("/register", "error", message));
+  let target = "/register";
+  if (referralCode) {
+    target = withSearchParam(target, "ref", referralCode);
+  }
+  target = withSearchParam(target, "error", message);
+  if (fieldName) {
+    target = withSearchParam(target, "field", fieldName);
+  }
+  return redirectRelative(target);
 }
 
 function makeReferralCode(username: string) {
@@ -62,6 +70,20 @@ type ReferralTarget = {
   referrerUserId: number;
   referralLinkId: number | null;
 };
+
+async function usernameExists(username: string) {
+  const [rows] = await pool.execute("select id from users where username = ? limit 1", [username]);
+  return Boolean((rows as Array<{ id: number }>)[0]);
+}
+
+function duplicateField(error: unknown) {
+  const message = `${(error as { message?: string; sqlMessage?: string }).message ?? ""} ${
+    (error as { sqlMessage?: string }).sqlMessage ?? ""
+  }`;
+  if (/users_username_unique|username/i.test(message)) return "username";
+  if (/users_email_unique|email/i.test(message)) return "email";
+  return undefined;
+}
 
 async function resolveReferralTarget(
   connection: Awaited<ReturnType<typeof pool.getConnection>>,
@@ -175,6 +197,7 @@ async function insertUser(input: z.infer<typeof registerSchema>) {
 
 export async function POST(request: NextRequest) {
   const formData = await request.formData();
+  const referralCode = field(formData, "referralCode");
   const parsed = registerSchema.safeParse({
     username: field(formData, "username"),
     password: field(formData, "password"),
@@ -186,14 +209,28 @@ export async function POST(request: NextRequest) {
     eMoneyCode: field(formData, "eMoneyCode"),
     accountName: field(formData, "accountName"),
     accountNumber: field(formData, "accountNumber"),
-    referralCode: field(formData, "referralCode")
+    referralCode
   });
 
   if (!parsed.success) {
-    return redirectWithError(request, parsed.error.issues[0]?.message ?? "Data register tidak valid");
+    const issue = parsed.error.issues[0];
+    return redirectWithError(
+      request,
+      issue?.message ?? "Data register tidak valid",
+      String(issue?.path[0] ?? ""),
+      referralCode
+    );
   }
 
   try {
+    if (await usernameExists(parsed.data.username)) {
+      return redirectWithError(
+        request,
+        "Username sudah digunakan. Silahkan gunakan username lain.",
+        "username",
+        parsed.data.referralCode
+      );
+    }
     const userId = await insertUser(parsed.data);
     const response = redirectRelative("/");
     const token = await createSessionToken({ userId, username: parsed.data.username }, true);
@@ -202,15 +239,27 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     const code = (error as { code?: string }).code;
     if (code === "ER_DUP_ENTRY") {
-      return redirectWithError(request, "Username atau email sudah terdaftar");
+      const fieldName = duplicateField(error);
+      if (fieldName === "username") {
+        return redirectWithError(
+          request,
+          "Username sudah digunakan. Silahkan gunakan username lain.",
+          "username",
+          parsed.data.referralCode
+        );
+      }
+      if (fieldName === "email") {
+        return redirectWithError(request, "Email sudah terdaftar.", "email", parsed.data.referralCode);
+      }
+      return redirectWithError(request, "Username atau email sudah terdaftar", undefined, parsed.data.referralCode);
     }
     if ((error as Error).message === "INVALID_PAYMENT_PROVIDER") {
-      return redirectWithError(request, "Bank atau e-money tidak valid");
+      return redirectWithError(request, "Bank atau e-money tidak valid", "paymentMethod", parsed.data.referralCode);
     }
     if ((error as Error).message === "INVALID_REFERRAL_CODE") {
-      return redirectWithError(request, "Kode referral tidak valid atau sudah tidak aktif");
+      return redirectWithError(request, "Kode referral tidak valid atau sudah tidak aktif", "referralCode", parsed.data.referralCode);
     }
     console.error(error);
-    return redirectWithError(request, "Register gagal diproses");
+    return redirectWithError(request, "Register gagal diproses", undefined, parsed.data.referralCode);
   }
 }

@@ -23,9 +23,13 @@ function field(formData: FormData, name: string) {
   return typeof value === "string" ? value : "";
 }
 
-function redirectWithError(request: NextRequest, message: string) {
+function redirectWithError(request: NextRequest, message: string, fieldName?: string) {
   void request;
-  return redirectRelative(withSearchParam("/login", "error", message));
+  let target = withSearchParam("/login", "error", message);
+  if (fieldName) {
+    target = withSearchParam(target, "field", fieldName);
+  }
+  return redirectRelative(target);
 }
 
 export async function POST(request: NextRequest) {
@@ -37,7 +41,8 @@ export async function POST(request: NextRequest) {
   });
 
   if (!parsed.success) {
-    return redirectWithError(request, parsed.error.issues[0]?.message ?? "Login tidak valid");
+    const issue = parsed.error.issues[0];
+    return redirectWithError(request, issue?.message ?? "Login tidak valid", String(issue?.path[0] ?? ""));
   }
 
   const [rows] = await pool.execute(
@@ -51,7 +56,7 @@ export async function POST(request: NextRequest) {
   }
 
   if (user.status !== "active") {
-    return redirectWithError(request, "Akun tidak aktif");
+    return redirectWithError(request, "Akun tidak aktif", "username");
   }
 
   const response = redirectRelative("/");
