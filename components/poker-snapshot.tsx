@@ -247,6 +247,7 @@ function sanitizePokerMainHtml(html: string) {
   return html
     .replace(/https:\/\/agenolx\.com/g, "")
     .replace(/https:\/\/agenolxtoro\.com/g, "")
+    .replace(/https:\/\/multi-chat\.info\/go-tg\?i=agenolx/g, "/")
     .replace(/(href|src)="\.\/([^"]+)"/g, '$1="/$2"')
     .replace(/\s(?:onclick|onerror|onload|onmouseover|onmouseout)="[^"]*"/g, "")
     .replace(/\sfdprocessedid="[^"]*"/g, "");

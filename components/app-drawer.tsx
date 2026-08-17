@@ -175,9 +175,7 @@ export function AppDrawer({ user }: AppDrawerProps) {
               </a>
             ) : null}
             <a
-              href="https://multi-chat.info/go-tg?i=agenolx"
-              target="_blank"
-              rel="noopener noreferrer"
+              href="/"
               className="btn btn--flex"
               style={{ backgroundColor: "#0088cc", color: "#fff" }}
             >

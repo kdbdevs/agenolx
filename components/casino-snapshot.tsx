@@ -293,6 +293,7 @@ function readCasinoMainHtml(category: CasinoCategory, mobile: boolean) {
 function sanitizeCasinoMainHtml(html: string, forceMobileClasses: boolean) {
   let output = html
     .replace(/https:\/\/agenolxtoro\.com/g, "")
+    .replace(/https:\/\/multi-chat\.info\/go-tg\?i=agenolx/g, "/")
     .replace(/(href|src)="\.\/([^"]+)"/g, '$1="/$2"')
     .replace(/\s(?:onclick|onerror|onload|onmouseover|onmouseout)="[^"]*"/g, "")
     .replace(/\sfdprocessedid="[^"]*"/g, "");

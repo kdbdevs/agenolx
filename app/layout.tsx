@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { AppDrawer } from "@/components/app-drawer";
 import { LoginModal } from "@/components/login-modal";
+import { PasswordVisibilityController } from "@/components/password-visibility-controller";
 import { getCurrentUser } from "@/lib/session";
 import "./source.css";
 import "./source-unscoped.css";
@@ -33,6 +34,7 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
         {children}
         <AppDrawer user={user} />
         <LoginModal />
+        <PasswordVisibilityController />
       </body>
     </html>
   );

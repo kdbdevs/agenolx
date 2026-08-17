@@ -96,8 +96,7 @@ function Header({
               <i className="icon-android-alt icon--lg" />
             </Link>
             <Link
-              href="https://multi-chat.info/go-tg?i=agenolx"
-              target="_blank"
+              href="/"
               className="btn btn--flex btn--sm agen-telegram-btn rebuild-telegram"
             >
               <i className="icon-telegram icon--md" />

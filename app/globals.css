@@ -1162,6 +1162,30 @@ body {
   color: #139c44;
 }
 
+.input__password .input__icon--pv {
+  top: 50%;
+  right: 0.375rem;
+  left: auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  padding: 0;
+  line-height: 1;
+  transform: translateY(-50%);
+}
+
+.input__password .input__icon--pv i {
+  display: block;
+  margin: 0;
+  line-height: 1;
+}
+
+.input__password .input {
+  padding-right: 2.5rem;
+}
+
 .input[data-referral-locked="true"],
 .rebuild-field input[data-referral-locked="true"] {
   cursor: not-allowed;

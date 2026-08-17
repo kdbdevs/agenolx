@@ -227,7 +227,7 @@ export function DesktopHeader({ user, activeDeposit = false }: AuthSnapshotProps
             </a>
           </div>
           <div className="app-header__widgets">
-            <a href="https://multi-chat.info/go-tg?i=agenolx" target="_blank" className="btn btn--flex btn--sm agen-telegram-btn desktop-home__telegram">
+            <a href="/" className="btn btn--flex btn--sm agen-telegram-btn desktop-home__telegram">
               <i className="icon-telegram icon--md" /> <span>Main di Telegram</span>
             </a>
             {user ? (
