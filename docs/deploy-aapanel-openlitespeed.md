@@ -108,7 +108,7 @@ pm2 status
 
 The PM2 config starts:
 
-- `agenolx` on `127.0.0.1:3000`
+- `pemulabet` on `127.0.0.1:3000`
 - `pemulabet-admin` on `127.0.0.1:3001`
 
 Enable PM2 on boot:
@@ -176,7 +176,7 @@ npm ci
 npm run db:schema
 npm run admin:create
 npm run build
-pm2 restart agenolx pemulabet-admin
+pm2 restart pemulabet pemulabet-admin
 pm2 save
 ```
 
@@ -186,6 +186,6 @@ pm2 save
 curl -I http://127.0.0.1:3000
 curl -I http://127.0.0.1:3001/admin
 curl -I http://pemulabet.com
-pm2 logs agenolx --lines 80
+pm2 logs pemulabet --lines 80
 pm2 logs pemulabet-admin --lines 80
 ```
