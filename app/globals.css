@@ -5801,6 +5801,32 @@ i[data-v-36ca62b1]{margin-right:.5rem}
   margin-bottom: 1rem;
 }
 
+.login-modal__error {
+  width: 80vw;
+  max-width: 350px;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  gap: .5rem;
+  margin: 0 auto 1rem;
+  padding: .75rem 1rem;
+  color: #8a1f1f;
+  border: 1px solid #ffb3b3;
+  border-radius: 5px;
+  background: #fff1f1;
+}
+
+.login-modal__error i {
+  color: #d92d20;
+}
+
+.login-modal__error p {
+  margin: 0;
+  color: #8a1f1f;
+  font-size: .875rem;
+  font-weight: 700;
+}
+
 .login__extra {
   margin-top: 1rem;
   display: flex;
