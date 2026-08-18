@@ -247,22 +247,19 @@ export function DepositPage({
   success,
   error
 }: {
-  method: "bank_transfer" | "qris";
+  method: "bank_transfer";
   targets: DepositPaymentTarget[];
   pendingDeposit?: PendingDeposit | null;
   success?: string;
   error?: string;
 }) {
-  const isQris = method === "qris";
   const amountOptions = [50000, 100000, 200000, 500000];
   const recommendedBankName = "MANDIRI";
   const mandiriTarget = targets.find((target) =>
     target.name.toLocaleLowerCase("id-ID").includes(recommendedBankName.toLocaleLowerCase("id-ID"))
   );
-  const recommendedTarget = isQris ? targets[0] : mandiriTarget;
-  const formDisabled = isQris
-    ? targets.length === 0
-    : !recommendedTarget?.depositAccountName || !recommendedTarget.depositAccountNumber;
+  const recommendedTarget = mandiriTarget;
+  const formDisabled = !recommendedTarget?.depositAccountName || !recommendedTarget.depositAccountNumber;
 
   return (
     <section className="deposit deposit--d">
@@ -272,16 +269,10 @@ export function DepositPage({
       </header>
       <nav className="side-nav side-nav--d">
         <ul>
-          <li className={`side-nav__item${!isQris ? " side-nav__item--active" : ""}`}>
+          <li className="side-nav__item side-nav__item--active">
             <Link href="/deposit/bank-transfer">
               <i className="icon-bank-transfer icon--lg" />
               <span>Bank Transfer</span>
-            </Link>
-          </li>
-          <li className={`side-nav__item${isQris ? " side-nav__item--active" : ""}`}>
-            <Link href="/deposit/qris">
-              <i className="icon-qris icon--lg" />
-              <span>QRIS</span>
             </Link>
           </li>
         </ul>
@@ -317,32 +308,26 @@ export function DepositPage({
             <>
               <DepositBankSelector
                 targets={targets}
-                inputName={isQris ? undefined : "bankId"}
-                recommendedBankName={isQris ? undefined : recommendedBankName}
+                inputName="bankId"
+                recommendedBankName={recommendedBankName}
                 disabled={formDisabled}
               />
               <div className={`alert alert--${formDisabled ? "danger" : "info"}`}>
                 <i className="icon-info icon--lg" />
                 <p>
                   {formDisabled
-                    ? isQris
-                      ? "Metode QRIS belum tersedia."
-                      : "Rekening MANDIRI belum tersedia. Silahkan hubungi admin."
-                    : isQris
-                      ? "Silahkan lanjutkan deposit menggunakan QRIS."
-                      : "Silahkan menggunakan MANDIRI. Bank lain sedang gangguan sementara."}
+                    ? "Rekening MANDIRI belum tersedia. Silahkan hubungi admin."
+                    : "Silahkan menggunakan MANDIRI. Bank lain sedang gangguan sementara."}
                 </p>
               </div>
               <DepositAmountPicker amounts={amountOptions} disabled={formDisabled} />
-              {!isQris ? (
-                <div className="input__container input__textarea">
-                  <label>Catatan</label>
-                  <div className="input__root">
-                    <textarea name="note" className="input" rows={1} placeholder="Catatan" disabled={formDisabled} />
-                    <i className="input__icon icon-pen icon--xs" />
-                  </div>
+              <div className="input__container input__textarea">
+                <label>Catatan</label>
+                <div className="input__root">
+                  <textarea name="note" className="input" rows={1} placeholder="Catatan" disabled={formDisabled} />
+                  <i className="input__icon icon-pen icon--xs" />
                 </div>
-              ) : null}
+              </div>
               <button type="submit" className="btn btn--block btn--success" disabled={formDisabled}>
                 <span>Kirim</span>
               </button>

@@ -70,17 +70,20 @@ export default async function PublicRoute({ params, searchParams }: PageProps) {
     redirect("/deposit/bank-transfer");
   }
 
-  if (path === "/deposit/bank-transfer" || path === "/deposit/qris") {
+  if (path === "/deposit/qris") {
+    redirect("/deposit/bank-transfer");
+  }
+
+  if (path === "/deposit/bank-transfer") {
     if (!user) redirect("/login?error=Silahkan%20masuk%20terlebih%20dahulu");
-    const method = path === "/deposit/qris" ? "qris" : "bank_transfer";
     const [depositTargets, pendingDeposit] = await Promise.all([
-      getActiveDepositTargets(method),
+      getActiveDepositTargets("bank_transfer"),
       getPendingDepositForUser(user.id)
     ]);
     return (
       <AppShell activePath={path} user={user}>
         <DepositPage
-          method={method}
+          method="bank_transfer"
           targets={depositTargets}
           pendingDeposit={pendingDeposit}
           success={firstParam(query.success)}
