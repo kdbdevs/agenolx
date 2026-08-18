@@ -1,5 +1,5 @@
 import bcrypt from "bcryptjs";
-import type { NextRequest } from "next/server";
+import { NextResponse, type NextRequest } from "next/server";
 import { z } from "zod";
 import { createSessionToken, setAuthCookie } from "@/lib/auth";
 import { pool } from "@/lib/db";
@@ -23,8 +23,15 @@ function field(formData: FormData, name: string) {
   return typeof value === "string" ? value : "";
 }
 
-function redirectWithError(request: NextRequest, message: string, fieldName?: string) {
-  void request;
+function isAjaxLogin(request: NextRequest) {
+  return request.headers.get("x-login-ajax") === "1";
+}
+
+function loginErrorResponse(request: NextRequest, message: string, fieldName?: string, status = 400) {
+  if (isAjaxLogin(request)) {
+    return NextResponse.json({ ok: false, error: message, field: fieldName ?? "" }, { status });
+  }
+
   let target = withSearchParam("/login", "error", message);
   if (fieldName) {
     target = withSearchParam(target, "field", fieldName);
@@ -42,7 +49,7 @@ export async function POST(request: NextRequest) {
 
   if (!parsed.success) {
     const issue = parsed.error.issues[0];
-    return redirectWithError(request, issue?.message ?? "Login tidak valid", String(issue?.path[0] ?? ""));
+    return loginErrorResponse(request, issue?.message ?? "Login tidak valid", String(issue?.path[0] ?? ""));
   }
 
   const [rows] = await pool.execute(
@@ -52,14 +59,14 @@ export async function POST(request: NextRequest) {
   const user = (rows as LoginUserRow[])[0];
 
   if (!user || !(await bcrypt.compare(parsed.data.password, user.password_hash))) {
-    return redirectWithError(request, "Username atau password salah");
+    return loginErrorResponse(request, "Username atau password salah", undefined, 401);
   }
 
   if (user.status !== "active") {
-    return redirectWithError(request, "Akun tidak aktif", "username");
+    return loginErrorResponse(request, "Akun tidak aktif", "username", 403);
   }
 
-  const response = redirectRelative("/");
+  const response = isAjaxLogin(request) ? NextResponse.json({ ok: true, redirect: "/" }) : redirectRelative("/");
   const token = await createSessionToken({ userId: user.id, username: user.username }, parsed.data.remember);
   setAuthCookie(response, token, parsed.data.remember);
   return response;

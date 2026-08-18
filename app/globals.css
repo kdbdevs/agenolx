@@ -5784,6 +5784,37 @@ i[data-v-36ca62b1]{margin-right:.5rem}
   border-radius: 0;
 }
 
+.login-modal--desktop .modal__root {
+  width: min(420px, calc(100vw - 2rem));
+}
+
+.login-modal--desktop .modal__surface,
+.login-modal--desktop .login__form,
+.login-modal--desktop .login-modal__error {
+  width: 100%;
+  max-width: 100%;
+}
+
+.login-modal--mobile {
+  align-items: flex-end;
+}
+
+.login-modal--mobile .modal__root {
+  width: 100%;
+}
+
+.login-modal--mobile .modal__surface {
+  width: 100%;
+  max-width: 100%;
+  padding: 1.75rem 1rem calc(1rem + env(safe-area-inset-bottom));
+  border-radius: 18px 18px 0 0;
+}
+
+.login-modal--mobile .modal__close {
+  top: .75rem;
+  right: .75rem;
+}
+
 .login__container {
   background-color: #fff;
 }

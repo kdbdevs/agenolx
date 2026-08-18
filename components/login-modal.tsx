@@ -30,12 +30,36 @@ export function LoginModal() {
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
   const [loginError, setLoginError] = useState("");
   const [loginErrorField, setLoginErrorField] = useState("");
+  const [loginUsername, setLoginUsername] = useState("");
+  const [loginRemember, setLoginRemember] = useState(false);
+  const [displayMode, setDisplayMode] = useState<"desktop" | "mobile">("desktop");
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const titleId = useId();
+
+  const readDisplayMode = useCallback(() => {
+    if (typeof window === "undefined") return "desktop";
+    return window.matchMedia("(max-width: 1023px)").matches ? "mobile" : "desktop";
+  }, []);
+
+  const openWithError = useCallback((form: HTMLFormElement | null, message: string, field = "") => {
+    const formData = form ? new FormData(form) : null;
+    const username = formData?.get("username");
+    const remember = formData?.get("remember");
+
+    setLoginUsername(typeof username === "string" ? username : "");
+    setLoginRemember(Boolean(remember));
+    setLoginError(message);
+    setLoginErrorField(field);
+    setDisplayMode(readDisplayMode());
+    setIsOpen(true);
+    clearLoginErrorFromUrl();
+  }, [readDisplayMode]);
 
   const closeModal = useCallback(() => {
     setIsOpen(false);
     setLoginError("");
     setLoginErrorField("");
+    setIsSubmitting(false);
     clearLoginErrorFromUrl();
   }, []);
 
@@ -44,11 +68,9 @@ export function LoginModal() {
     if (!message || window.location.pathname !== "/login") return;
 
     queueMicrotask(() => {
-      setLoginError(message);
-      setLoginErrorField(field);
-      setIsOpen(true);
+      openWithError(null, message, field);
     });
-  }, []);
+  }, [openWithError]);
 
   useEffect(() => {
     function handleClick(event: MouseEvent) {
@@ -61,12 +83,63 @@ export function LoginModal() {
       event.preventDefault();
       setLoginError("");
       setLoginErrorField("");
+      setDisplayMode(readDisplayMode());
       setIsOpen(true);
     }
 
     document.addEventListener("click", handleClick);
     return () => document.removeEventListener("click", handleClick);
-  }, []);
+  }, [readDisplayMode]);
+
+  useEffect(() => {
+    function isPublicLoginForm(form: HTMLFormElement) {
+      const action = new URL(form.action || "/api/auth/login", window.location.origin);
+      return action.origin === window.location.origin && action.pathname === "/api/auth/login";
+    }
+
+    async function handleSubmit(event: SubmitEvent) {
+      const form = event.target;
+      if (!(form instanceof HTMLFormElement) || !isPublicLoginForm(form)) return;
+
+      event.preventDefault();
+      setIsSubmitting(true);
+
+      const submitter = event.submitter;
+      if (submitter instanceof HTMLButtonElement || submitter instanceof HTMLInputElement) {
+        submitter.disabled = true;
+      }
+
+      try {
+        const response = await fetch(form.action, {
+          method: "POST",
+          body: new FormData(form),
+          headers: {
+            Accept: "application/json",
+            "X-Login-Ajax": "1"
+          },
+          credentials: "same-origin"
+        });
+        const result = await response.json().catch(() => null);
+
+        if (response.ok && result?.ok) {
+          window.location.assign(typeof result.redirect === "string" ? result.redirect : "/");
+          return;
+        }
+
+        openWithError(form, typeof result?.error === "string" ? result.error : "Login gagal. Silahkan coba lagi.", typeof result?.field === "string" ? result.field : "");
+      } catch {
+        openWithError(form, "Login gagal. Silahkan coba lagi.");
+      } finally {
+        setIsSubmitting(false);
+        if (submitter instanceof HTMLButtonElement || submitter instanceof HTMLInputElement) {
+          submitter.disabled = false;
+        }
+      }
+    }
+
+    document.addEventListener("submit", handleSubmit);
+    return () => document.removeEventListener("submit", handleSubmit);
+  }, [openWithError]);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -88,7 +161,7 @@ export function LoginModal() {
   if (!isOpen) return null;
 
   return (
-    <div className="modal login-modal" role="dialog" aria-modal="true" aria-labelledby={titleId}>
+    <div className={`modal login-modal login-modal--${displayMode}`} role="dialog" aria-modal="true" aria-labelledby={titleId}>
       <button
         type="button"
         className="modal__backdrop"
@@ -116,6 +189,8 @@ export function LoginModal() {
                       name="username"
                       autoComplete="username"
                       placeholder="Username"
+                      value={loginUsername}
+                      onChange={(event) => setLoginUsername(event.target.value)}
                       aria-invalid={loginError && (!loginErrorField || loginErrorField === "username") ? "true" : undefined}
                       className={`input input--inverse${loginError && (!loginErrorField || loginErrorField === "username") ? " input--invalid" : ""}`}
                     />
@@ -148,10 +223,10 @@ export function LoginModal() {
                     <i className="icon-square icon--md" />
                     <span>Tetap masuk</span>
                   </label>
-                  <input id="kli-modal" name="remember" type="checkbox" />
+                  <input id="kli-modal" name="remember" type="checkbox" checked={loginRemember} onChange={(event) => setLoginRemember(event.target.checked)} />
                 </div>
-                <button type="submit" className="btn btn--accent btn--block">
-                  <span>Masuk</span>
+                <button type="submit" className="btn btn--accent btn--block" disabled={isSubmitting}>
+                  <span>{isSubmitting ? "Memproses..." : "Masuk"}</span>
                 </button>
               </form>
               <div className="login__extra">
